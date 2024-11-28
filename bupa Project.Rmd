@@ -55,5 +55,6 @@ bupaR::eventlog(eventlog = data,
                 case_id = "case Company",
                 activity_id = "eventID",
                 timestamp = "event time:timestamp")
+#halolo
 ```
 
