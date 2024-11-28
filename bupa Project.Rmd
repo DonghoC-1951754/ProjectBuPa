@@ -50,11 +50,28 @@ data %>%
   group_by(`case Document Type`) %>%
   summarise(aantal = n())
 
+data <- data %>%
+  mutate(lifecycle_id = "complete")
+
+data$`event time:timestamp` <- dmy_hms(data$`event time:timestamp`)
+
+summary(data)
+
+bupaR::simple_eventlog(eventlog = data, case_id = "case Item", activity_id = "eventID", timestamp = "event time:timestamp")
+
+eventlog <- data %>%
+  eventlog(
+    case_id = "case Item",         # Kolomnaam voor case ID
+    activity_id = "eventID", # Kolomnaam voor activiteit
+    timestamp = "event time:timestamp",
+    activity_instance_id = "event concept:name",
+    lifecycle_id = "lifecycle_id",
+    resource_id = "event org:resource"
+  )
 
 bupaR::eventlog(eventlog = data,
                 case_id = "case Company",
                 activity_id = "eventID",
                 timestamp = "event time:timestamp")
-#halolo
 ```
 
