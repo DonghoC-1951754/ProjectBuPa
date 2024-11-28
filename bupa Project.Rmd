@@ -57,6 +57,10 @@ data$`event time:timestamp` <- dmy_hms(data$`event time:timestamp`)
 
 summary(data)
 
-bupaR::simple_eventlog(eventlog = data, case_id = "case concept:name", activity_id = "event concept:name", timestamp = "event time:timestamp")
+eventlog <- bupaR::simple_eventlog(eventlog = data, case_id = "case concept:name", activity_id = "event concept:name", timestamp = "event time:timestamp")
+
+
+process_map <- processmapR::process_map(eventlog)
+ggsave("process_map", plot = p, width = 10, height = 8)
 ```
 
