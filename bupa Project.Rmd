@@ -61,6 +61,5 @@ eventlog <- bupaR::simple_eventlog(eventlog = data, case_id = "case concept:name
 
 
 process_map <- processmapR::process_map(eventlog)
-ggsave("process_map", plot = p, width = 10, height = 8)
 ```
 
