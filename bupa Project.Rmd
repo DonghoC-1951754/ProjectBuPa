@@ -28,14 +28,14 @@ library(processmonitR)
 
 ```
 
-```{r setup, include=FALSE}
+```{r}
 # load data / source loadscript
 data <- read_csv("data.csv")
 
 ```
 
 
-```{r setup, include=FALSE}
+```{r}
 # bewerkingen data
 data %>%
   group_by(`case GR-Based Inv. Verif.`) %>%
@@ -54,7 +54,7 @@ data <- data %>%
 
 ```
 
-```{r setup, include=FALSE}
+```{r}
 # event log building
 data$`event time:timestamp` <- dmy_hms(data$`event time:timestamp`)
 
@@ -62,7 +62,18 @@ summary(data)
 
 eventlog <- bupaR::simple_eventlog(eventlog = data, case_id = "case concept:name", activity_id = "event concept:name", timestamp = "event time:timestamp")
 
+```
 
-process_map <- processmapR::process_map(eventlog)
+```{r}
+#om de cornerstones te bekijken
+
+cornerstones <- unique(data$`event concept:name`)
+print(cornerstones)
+```
+
+```{r}
+# Bekijken de key documents & tables
+documents <- unique(data$`case Purch. Doc. Category name`)
+print(documents)
 ```
 
