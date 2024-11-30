@@ -77,3 +77,23 @@ documents <- unique(data$`case Purch. Doc. Category name`)
 print(documents)
 ```
 
+```{r setup, include=FALSE}
+# Exploratory analysis (Dongho)
+
+# Remove special characters from raw data
+data_exploratory <- data
+colnames(data_exploratory) <- gsub("[^[:alnum:]_]", "", colnames(data))
+
+# Create simple_eventlog without special characters
+eventlog_exploratory <- simple_eventlog(
+  data_exploratory, 
+  case_id = "caseconceptname",
+  activity_id = "eventconceptname",
+  timestamp = "eventtimetimestamp"
+  )
+
+# Activity frequency
+eventlog_exploratory %>% activity_frequency(level = "activity")
+
+```
+
