@@ -80,7 +80,7 @@ print(documents)
 ```{r setup, include=FALSE}
 # Exploratory analysis (Dongho)
 
-# Remove special characters from raw data
+# Remove special characters from raw data (activity_frequency() doesn't work on the original eventlog)
 data_exploratory <- data
 colnames(data_exploratory) <- gsub("[^[:alnum:]_]", "", colnames(data))
 
@@ -94,6 +94,10 @@ eventlog_exploratory <- simple_eventlog(
 
 # Activity frequency
 eventlog_exploratory %>% activity_frequency(level = "activity")
+eventlog_exploratory %>% activity_frequency(level = "trace")
+eventlog_exploratory %>% activity_frequency(level = "case")
+eventlog_exploratory %>% activity_frequency(level = "log")
+
 
 ```
 
