@@ -98,6 +98,14 @@ eventlog_exploratory %>% activity_frequency(level = "trace")
 eventlog_exploratory %>% activity_frequency(level = "case")
 eventlog_exploratory %>% activity_frequency(level = "log")
 
+# Activity presence (= in what percentage of cases is each activity type present)
+activity_presence(eventlog_exploratory)
+
+# End activities 
+# log level: computes how many activity types occur as the last event in a case
+# At activity level, shows the activities which occur as last, and how often.
+eventlog_exploratory %>% end_activities(level = "log")
+eventlog_exploratory %>% end_activities(level = "activity")
 
 ```
 
