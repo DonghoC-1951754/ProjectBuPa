@@ -34,7 +34,6 @@ data <- read_csv("data.csv")
 
 ```
 
-
 ```{r}
 # bewerkingen data
 data %>%
@@ -77,7 +76,7 @@ documents <- unique(data$`case Purch. Doc. Category name`)
 print(documents)
 ```
 
-```{r setup, include=FALSE}
+```{r}
 # Exploratory analysis (Dongho)
 
 # Remove special characters from raw data (activity_frequency() doesn't work on the original eventlog)
@@ -93,8 +92,8 @@ eventlog_exploratory <- simple_eventlog(
   )
 
 # Activity frequency
-eventlog_exploratory %>% activity_frequency(level = "activity")
-eventlog_exploratory %>% activity_frequency(level = "trace")
+eventlog_exploratory %>% activity_frequency(level = "activity") %>% plot()
+eventlog_exploratory %>% activity_frequency(level = "trace") %>% plot()
 eventlog_exploratory %>% activity_frequency(level = "case")
 eventlog_exploratory %>% activity_frequency(level = "log")
 
@@ -102,10 +101,29 @@ eventlog_exploratory %>% activity_frequency(level = "log")
 activity_presence(eventlog_exploratory)
 
 # End activities 
-# log level: computes how many activity types occur as the last event in a case
-# At activity level, shows the activities which occur as last, and how often.
 eventlog_exploratory %>% end_activities(level = "log")
 eventlog_exploratory %>% end_activities(level = "activity")
 
-```
+# Idle time (amount of time that no activity occurs)
+eventlog_exploratory %>% idle_time(level = "log", units = "hours")
+eventlog_exploratory %>% idle_time(level = "case", units = "weeks")
+#trace_idle_time <- eventlog_exploratory %>% idle_time(level = "trace", units = "weeks")
+#write_csv(trace_idle_time, "trace_idle_time.csv")
+eventlog_exploratory %>% idle_time(level = "resource", units = "hours")
 
+# Number of repetitions
+eventlog_exploratory %>% number_of_repetitions(level = "log")
+eventlog_exploratory %>% number_of_repetitions(level = "case")
+eventlog_exploratory %>% number_of_repetitions(level = "activity") %>% plot()
+
+# Number of self loops
+eventlog_exploratory %>% number_of_selfloops(level = "log", type = "repeat")
+eventlog_exploratory %>% number_of_selfloops(level = "case", type = "repeat")
+eventlog_exploratory %>% number_of_selfloops(level = "activity", type = "repeat") %>% plot()
+
+# Number of traces
+number_of_traces(eventlog_exploratory)
+
+# Processing time
+eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
+```
