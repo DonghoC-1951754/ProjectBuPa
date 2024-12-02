@@ -140,9 +140,32 @@ processmapR::precedence_matrix(eventlog) %>% plot
 processmapR::trace_explorer(eventlog)
 ```
 
+```{r}
+# process map
+processmapR::process_map(eventlog)
+```
 
 ```{r}
 # trace explorer for infrequent traces
 
-processmapR::trace_explorer(eventlog, type = "infrequent")
+processmapR::trace_explorer(eventlog, type = "infrequent", n_traces = 5)
+```
+
+```{r}
+# dotted chart
+
+processmapR::dotted_chart(eventlog) #error -->oplossen nog geen tijd gehad
+```
+
+```{r}
+# resource map
+
+processmapR::resource_map(eventlog)
+```
+
+```{r}
+# resource matrix
+
+processmapR::resource_matrix(eventlog)
+processmapR::resource_matrix(eventlog) %>% plot
 ```
