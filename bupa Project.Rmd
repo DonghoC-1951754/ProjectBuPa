@@ -127,3 +127,22 @@ number_of_traces(eventlog_exploratory)
 # Processing time
 eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
 ```
+```{r}
+# precedence matrix geplot en niet geplot
+
+processmapR::precedence_matrix(eventlog)
+processmapR::precedence_matrix(eventlog) %>% plot
+```
+
+```{r}
+# trace explorer for frequent traces
+
+processmapR::trace_explorer(eventlog)
+```
+
+
+```{r}
+# trace explorer for infrequent traces
+
+processmapR::trace_explorer(eventlog, type = "infrequent")
+```
