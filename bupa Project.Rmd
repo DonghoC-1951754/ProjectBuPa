@@ -88,6 +88,7 @@ eventlog_exploratory <- simple_eventlog(
   data_exploratory, 
   case_id = "caseconceptname",
   activity_id = "eventconceptname",
+  resource_id = "eventorgresource",
   timestamp = "eventtimetimestamp"
   )
 
@@ -127,45 +128,53 @@ number_of_traces(eventlog_exploratory)
 # Processing time
 eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
 ```
+
+
 ```{r}
 # precedence matrix geplot en niet geplot
 
-processmapR::precedence_matrix(eventlog)
-processmapR::precedence_matrix(eventlog) %>% plot
+processmapR::precedence_matrix(eventlog_exploratory)
+processmapR::precedence_matrix(eventlog_exploratory) %>% plot
 ```
 
 ```{r}
 # trace explorer for frequent traces
 
-processmapR::trace_explorer(eventlog)
+processmapR::trace_explorer(eventlog_exploratory)
 ```
 
 ```{r}
 # process map
-processmapR::process_map(eventlog)
+processmapR::process_map(eventlog_exploratory)
 ```
 
 ```{r}
 # trace explorer for infrequent traces
 
-processmapR::trace_explorer(eventlog, type = "infrequent", n_traces = 5)
+processmapR::trace_explorer(eventlog_exploratory, type = "infrequent", n_traces = 5)
 ```
 
 ```{r}
 # dotted chart
 
-processmapR::dotted_chart(eventlog) #error -->oplossen nog geen tijd gehad
+plot(eventlog_exploratory)
 ```
 
 ```{r}
 # resource map
 
-processmapR::resource_map(eventlog)
+processmapR::dotted_chart(eventlog_exploratory)
+```
+
+```{r}
+# resource map
+
+processmapR::resource_map(eventlog_exploratory)
 ```
 
 ```{r}
 # resource matrix
 
-processmapR::resource_matrix(eventlog)
-processmapR::resource_matrix(eventlog) %>% plot
+processmapR::resource_matrix(eventlog_exploratory)
+processmapR::resource_matrix(eventlog_exploratory) %>% plot
 ```
