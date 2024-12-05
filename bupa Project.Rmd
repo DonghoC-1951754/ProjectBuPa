@@ -131,6 +131,17 @@ eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
 
 
 ```{r}
+# Clusteren van bepaalde activiteiten om de visualisaties makkelijker te maken
+
+eventlog_cluster <- eventlog_exploratory %>%
+  mutate(eventconceptname = case_when(
+    eventconceptname %in% c("SRM: Created", "SRM: Change was Transmitted", "SRM: Document Completed", "SRM: Awaiting Approval", "SRM: Complete", "SRM: In Transfer to Execution Syst.", "SRM: Ordered", "SRM: Deleted", "SRM: Transaction Completed", "SRM: Incomplete", "SRM: Held", "SRM: Transfer Failed (E.Sys.)") ~ "SRM",
+    eventconceptname %in% c("Change Currency", "Change Price", "Change Quantity") ~ "Change price/quantity/currency",
+    TRUE ~ eventconceptname
+  ))
+```
+
+```{r}
 # precedence matrix geplot en niet geplot
 
 processmapR::precedence_matrix(eventlog_exploratory)
@@ -145,36 +156,18 @@ processmapR::trace_explorer(eventlog_exploratory)
 
 ```{r}
 # process map
-processmapR::process_map(eventlog_exploratory)
+processmapR::process_map(eventlog_cluster)
 ```
 
 ```{r}
 # trace explorer for infrequent traces
 
-processmapR::trace_explorer(eventlog_exploratory, type = "infrequent", n_traces = 5)
+processmapR::trace_explorer(eventlog_cluster, type = "infrequent", coverage = 0.1)
 ```
+
 
 ```{r}
 # dotted chart
 
-plot(eventlog_exploratory)
-```
-
-```{r}
-# resource map
-
-processmapR::dotted_chart(eventlog_exploratory)
-```
-
-```{r}
-# resource map
-
-processmapR::resource_map(eventlog_exploratory)
-```
-
-```{r}
-# resource matrix
-
-processmapR::resource_matrix(eventlog_exploratory)
-processmapR::resource_matrix(eventlog_exploratory) %>% plot
+eventlog_cluster %>% dotted_chart(x = "relative")
 ```
