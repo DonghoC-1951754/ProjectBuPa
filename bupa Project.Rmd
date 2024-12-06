@@ -194,3 +194,9 @@ processmapR::trace_explorer(eventlog_cluster, type = "infrequent", coverage = 0.
 
 eventlog_cluster %>% dotted_chart(x = "relative")
 ```
+
+```{r}
+
+processmapR::precedence_matrix(eventlog_cluster) %>% plot
+
+```
