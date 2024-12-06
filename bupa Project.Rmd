@@ -128,6 +128,29 @@ number_of_traces(eventlog_exploratory)
 # Processing time
 eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
 ```
+```{r}
+#Checken of er een correcte procesuitvoering wordt uitgevoerd (zie projectbeschrijving die 3 facturaties)
+
+eventlog_cluster_before <- eventlog_cluster %>% filter(caseItemCategory == "3-way match, invoice before GR")
+
+eventlog_cluster_before2 <- eventlog_cluster_before %>%
+  filter(caseGRBasedInvVerif == FALSE)
+
+eventlog_cluster_after <- eventlog_cluster %>%
+  filter(caseItemCategory == "3-way match, invoice after GR")
+
+eventlog_cluster_after2 <- eventlog_cluster_after %>%
+  filter(caseGRBasedInvVerif == TRUE)
+```
+
+```{r}
+eventlog_cluster_before3 <- eventlog_cluster_before %>%
+  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt"))
+
+
+
+eventlog_cluster_before3 %>% precedence_matrix(type = "relative-antecedent") %>% plot()
+```
 
 
 ```{r}
@@ -151,7 +174,7 @@ processmapR::precedence_matrix(eventlog_exploratory) %>% plot
 ```{r}
 # trace explorer for frequent traces
 
-processmapR::trace_explorer(eventlog_exploratory)
+processmapR::trace_explorer(eventlog_cluster, n_traces = 5)
 ```
 
 ```{r}
