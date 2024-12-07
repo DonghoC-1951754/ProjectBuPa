@@ -54,11 +54,8 @@ data <- data %>%
 ```
 
 ```{r}
-# event log building
+# event log building aanpassen timestamp
 data$`event time:timestamp` <- dmy_hms(data$`event time:timestamp`)
-
-#Deze eventlog mag eventueel verwijderd worden
-eventlog <- bupaR::simple_eventlog(eventlog = data, case_id = "case concept:name", activity_id = "event concept:name", timestamp = "event time:timestamp")
 
 ```
 
@@ -259,6 +256,63 @@ false_count_twoway <- sum(eventlog_cluster_widetwowaybedragen$three_way_match ==
 ```
 
 ```{r}
+# infrequente traces
+
+traces <- eventlog_cluster %>%
+  arrange(caseconceptname, eventtimetimestamp) %>%
+  group_by(caseconceptname) %>%
+  summarise(trace = paste(eventconceptname, collapse = " -> ")) %>% 
+  ungroup()
+
+trace_summary <- traces %>%
+  group_by(trace) %>%
+  summarise(absolute_frequency = n())
+
+infrequent_traces <- trace_summary %>%
+  filter(absolute_frequency <= 3)
+
+summary(infrequent_traces)
+sum(infrequent_traces$absolute_frequency == 3)
+sum(infrequent_traces$absolute_frequency == 2)
+sum(infrequent_traces$absolute_frequency == 1)
+
+max(trace_summary$absolute_frequency)
+```
+
+```{r}
+# Kijken unieke start en eindactiviteiten 
+traces_with_start_end <- traces %>%
+  mutate(
+    start_activity = sapply(strsplit(trace, " -> "), `[`, 1), 
+    end_activity = sapply(strsplit(trace, " -> "), function(x) tail(x, 1)))
+
+start_summary <- traces_with_start_end %>%
+  group_by(start_activity) %>%
+  summarise(count_start = n())
+
+end_summary <- traces_with_start_end %>%
+  group_by(end_activity) %>%
+  summarise(count_end = n())
+
+start_summary
+end_summary
+
+# Visualisatie van deze activiteiten
+
+ggplot(start_summary, aes(x = reorder(start_activity, count_start), y = count_start)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  coord_flip() +
+  labs(title = "Frequentie van Startactiviteiten", x = "Startactiviteiten", y = "Frequentie") +
+  theme_minimal()
+
+ggplot(end_summary, aes(x = reorder(end_activity, count_end), y = count_end)) +
+  geom_bar(stat = "identity", fill = "red") +
+  coord_flip() +
+  labs(title = "Frequentie van Eindactiviteiten", x = "Eindactiviteiten", y = "Frequentie") +
+  theme_minimal()
+```
+
+```{r}
 # precedence matrix geplot en niet geplot
 
 activity_frequency(eventlog_cluster, level = "activity") %>% plot()
@@ -269,23 +323,14 @@ activity_frequency(eventlog_cluster, level = "activity") %>% plot()
 
 processmapR::precedence_matrix(eventlog_exploratory)
 processmapR::precedence_matrix(eventlog_exploratory) %>% plot
+
+
 ```
 
 ```{r}
 # trace explorer for frequent traces
 
 processmapR::trace_explorer(eventlog_cluster, n_traces = 5)
-```
-
-```{r}
-# process map
-processmapR::process_map(eventlog_cluster)
-```
-
-```{r}
-# trace explorer for infrequent traces
-
-processmapR::trace_explorer(eventlog_cluster, type = "infrequent", coverage = 0.1)
 ```
 
 
