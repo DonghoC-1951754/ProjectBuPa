@@ -57,8 +57,7 @@ data <- data %>%
 # event log building
 data$`event time:timestamp` <- dmy_hms(data$`event time:timestamp`)
 
-summary(data)
-
+#Deze eventlog mag eventueel verwijderd worden
 eventlog <- bupaR::simple_eventlog(eventlog = data, case_id = "case concept:name", activity_id = "event concept:name", timestamp = "event time:timestamp")
 
 ```
