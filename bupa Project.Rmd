@@ -140,6 +140,12 @@ eventlog_cluster <- eventlog_exploratory %>%
 ```
 
 ```{r}
+# Data exporteren csv om een procesmap in Disco te kunnen maken
+
+write.csv(eventlog_cluster, "clustereddata.csv", row.names = FALSE)
+```
+
+```{r}
 #Checken of er een correcte procesuitvoering wordt uitgevoerd (zie projectbeschrijving die 4 regels)
 
 eventlog_cluster_before <- eventlog_cluster %>% filter(caseItemCategory == "3-way match, invoice before GR")
@@ -250,6 +256,12 @@ print(eventlog_cluster_widetwowaybedragen)
 
 false_count_twoway <- sum(eventlog_cluster_widetwowaybedragen$three_way_match == FALSE, na.rm = TRUE)
 
+```
+
+```{r}
+# precedence matrix geplot en niet geplot
+
+activity_frequency(eventlog_cluster, level = "activity") %>% plot()
 ```
 
 ```{r}
