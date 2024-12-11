@@ -54,12 +54,8 @@ data <- data %>%
 ```
 
 ```{r}
-# event log building
+# event log building aanpassen timestamp
 data$`event time:timestamp` <- dmy_hms(data$`event time:timestamp`)
-
-summary(data)
-
-eventlog <- bupaR::simple_eventlog(eventlog = data, case_id = "case concept:name", activity_id = "event concept:name", timestamp = "event time:timestamp")
 
 ```
 
@@ -88,6 +84,7 @@ eventlog_exploratory <- simple_eventlog(
   data_exploratory, 
   case_id = "caseconceptname",
   activity_id = "eventconceptname",
+  resource_id = "eventorgresource",
   timestamp = "eventtimetimestamp"
   )
 
@@ -128,6 +125,7 @@ number_of_traces(eventlog_exploratory)
 eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
 ```
 
+<<<<<<< HEAD
 # Exploratieve analyse Ellen
 ```{r}
 eventlog_ellen <- simple_eventlog(
@@ -373,10 +371,89 @@ eventlog_ellen %>%
   slice(1:10)
 eventlog_ellen %>%
   size_of_repetitions(level = "resource", type = "repeat") %>% plot()
+=======
+```{r}
+# Clusteren van bepaalde activiteiten om de visualisaties makkelijker te maken
+
+eventlog_cluster <- eventlog_exploratory %>%
+  mutate(eventconceptname = case_when(
+    eventconceptname %in% c("SRM: Created", "SRM: Change was Transmitted", "SRM: Document Completed", "SRM: Awaiting Approval", "SRM: Complete", "SRM: In Transfer to Execution Syst.", "SRM: Ordered", "SRM: Deleted", "SRM: Transaction Completed", "SRM: Incomplete", "SRM: Held", "SRM: Transfer Failed (E.Sys.)") ~ "SRM",
+    eventconceptname %in% c("Change Currency", "Change Price", "Change Quantity") ~ "Change price/quantity/currency",
+    TRUE ~ eventconceptname
+  ))
+```
+
+```{r}
+# Data exporteren csv om een procesmap in Disco te kunnen maken
+
+write.csv(eventlog_cluster, "clustereddata.csv", row.names = FALSE)
+```
+
+```{r}
+#Checken of er een correcte procesuitvoering wordt uitgevoerd (zie projectbeschrijving die 4 regels)
+
+eventlog_cluster_before <- eventlog_cluster %>% filter(caseItemCategory == "3-way match, invoice before GR")
+
+eventlog_cluster_before2 <- eventlog_cluster_before %>%
+  filter(caseGRBasedInvVerif == FALSE)
+
+eventlog_cluster_after <- eventlog_cluster %>%
+  filter(caseItemCategory == "3-way match, invoice after GR")
+
+eventlog_cluster_after2 <- eventlog_cluster_after %>%
+  filter(caseGRBasedInvVerif == TRUE)
+
+eventlog_cluster_twoway <- eventlog_cluster %>%
+  filter(caseItemCategory == "2-way match")
+
+eventlog_cluster_twoway2 <- eventlog_cluster_twoway %>%
+  filter(caseGoodsReceipt == FALSE)
+
+eventlog_cluster_consignment <- eventlog_cluster %>%
+  filter(caseItemType == "Consignment")
+```
+
+```{r}
+#filteren om te kijken of er een goods receipt aanwezig is
+
+eventlog_cluster_before_check <- eventlog_cluster_before3 %>%
+  filter(caseGoodsReceipt == TRUE)
+```
+
+```{r}
+#Precedence matrix opmaken voor de regel van de factuur voor de GR te analyseren.
+eventlog_cluster_before3 <- eventlog_cluster_before %>%
+  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt"))
+
+
+
+eventlog_cluster_before3 %>% precedence_matrix(type = "relative-antecedent") %>% plot()
+```
+
+```{r}
+#kijken of de bedragen overeenkomen voor invoice before GR
+eventlog_cluster_beforebedragen <- eventlog_cluster_before %>%
+  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt", "Create Purchase Order Item")) %>%
+  select(caseconceptname, eventconceptname, eventCumulativenetworthEUR, eventtimetimestamp)
+
+eventlog_cluster_widebeforebedragen <- eventlog_cluster_beforebedragen %>%
+  group_by(caseconceptname) %>%
+  summarise(PO_value = max(eventCumulativenetworthEUR[eventconceptname == "Create Purchase Order Item"], na.rm = TRUE),
+            GR_value = max(eventCumulativenetworthEUR[eventconceptname == "Record Goods Receipt"], na.rm = TRUE),
+            Invoice_value = max(eventCumulativenetworthEUR[eventconceptname %in% c("Vendor creates invoice", "Record Invoice Receipt")], na.rm = TRUE))
+
+eventlog_cluster_widebeforebedragen <- eventlog_cluster_widebeforebedragen %>%
+  mutate(three_way_match = PO_value == GR_value & GR_value == Invoice_value)
+
+print(eventlog_cluster_widebeforebedragen)
+
+false_count_before_threeway <- sum(eventlog_cluster_widebeforebedragen$three_way_match == FALSE, na.rm = TRUE)
+>>>>>>> 1ad917f9895bdfed890f068c8db1db345c76ecb4
 
 ```
 
 ```{r}
+<<<<<<< HEAD
 eventlog_ellen %>%
   size_of_repetitions(level = "resource-activity", type = "repeat") %>% 
   arrange(desc(total)) %>% 
@@ -566,39 +643,146 @@ Op "trace"-niveau, worden de tracelengte van de verschillende procesvarianten of
 
 
 
+=======
+#Precedence matrix opmaken voor de regel van de factuur na de GR te hebben
+eventlog_cluster_after3 <- eventlog_cluster_after %>%
+  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt"))
+
+
+
+eventlog_cluster_after3 %>% precedence_matrix(type = "relative-antecedent") %>% plot()
+```
+
+```{r}
+#kijken of de bedragen overeenkomen voor invoice after GR
+eventlog_cluster_afterbedragen <- eventlog_cluster_after %>%
+  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt", "Create Purchase Order Item")) %>%
+  select(caseconceptname, eventconceptname, eventCumulativenetworthEUR, eventtimetimestamp)
+
+eventlog_cluster_wideafterbedragen <- eventlog_cluster_afterbedragen %>%
+  group_by(caseconceptname) %>%
+  summarise(PO_value = max(eventCumulativenetworthEUR[eventconceptname == "Create Purchase Order Item"], na.rm = TRUE),
+            GR_value = max(eventCumulativenetworthEUR[eventconceptname == "Record Goods Receipt"], na.rm = TRUE),
+            Invoice_value = max(eventCumulativenetworthEUR[eventconceptname %in% c("Vendor creates invoice", "Record Invoice Receipt")], na.rm = TRUE))
+
+eventlog_cluster_wideafterbedragen <- eventlog_cluster_wideafterbedragen %>%
+  mutate(three_way_match = PO_value == GR_value & GR_value == Invoice_value)
+
+print(eventlog_cluster_wideafterbedragen)
+
+false_count_after_threeway <- sum(eventlog_cluster_wideafterbedragen$three_way_match == FALSE, na.rm = TRUE)
+
+```
+
+```{r}
+#kijken of de bedragen overeenkomen voor two way matching
+eventlog_cluster_twowaybedragen <- eventlog_cluster_twoway %>%
+  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt", "Create Purchase Order Item")) %>%
+  select(caseconceptname, eventconceptname, eventCumulativenetworthEUR, eventtimetimestamp)
+
+eventlog_cluster_widetwowaybedragen <- eventlog_cluster_twowaybedragen %>%
+  group_by(caseconceptname) %>%
+  summarise(PO_value = max(eventCumulativenetworthEUR[eventconceptname == "Create Purchase Order Item"], na.rm = TRUE),
+            Invoice_value = max(eventCumulativenetworthEUR[eventconceptname %in% c("Vendor creates invoice", "Record Invoice Receipt")], na.rm = TRUE))
+
+eventlog_cluster_widetwowaybedragen <- eventlog_cluster_widetwowaybedragen %>%
+  mutate(three_way_match = PO_value == Invoice_value)
+
+print(eventlog_cluster_widetwowaybedragen)
+
+false_count_twoway <- sum(eventlog_cluster_widetwowaybedragen$three_way_match == FALSE, na.rm = TRUE)
+
+```
+
+```{r}
+# infrequente traces
+
+traces <- eventlog_cluster %>%
+  arrange(caseconceptname, eventtimetimestamp) %>%
+  group_by(caseconceptname) %>%
+  summarise(trace = paste(eventconceptname, collapse = " -> ")) %>% 
+  ungroup()
+
+trace_summary <- traces %>%
+  group_by(trace) %>%
+  summarise(absolute_frequency = n())
+
+infrequent_traces <- trace_summary %>%
+  filter(absolute_frequency <= 3)
+
+summary(infrequent_traces)
+sum(infrequent_traces$absolute_frequency == 3)
+sum(infrequent_traces$absolute_frequency == 2)
+sum(infrequent_traces$absolute_frequency == 1)
+
+max(trace_summary$absolute_frequency)
+```
+
+```{r}
+# Kijken unieke start en eindactiviteiten 
+traces_with_start_end <- traces %>%
+  mutate(
+    start_activity = sapply(strsplit(trace, " -> "), `[`, 1), 
+    end_activity = sapply(strsplit(trace, " -> "), function(x) tail(x, 1)))
+
+start_summary <- traces_with_start_end %>%
+  group_by(start_activity) %>%
+  summarise(count_start = n())
+
+end_summary <- traces_with_start_end %>%
+  group_by(end_activity) %>%
+  summarise(count_end = n())
+
+start_summary
+end_summary
+
+# Visualisatie van deze activiteiten
+
+ggplot(start_summary, aes(x = reorder(start_activity, count_start), y = count_start)) +
+  geom_bar(stat = "identity", fill = "blue") +
+  coord_flip() +
+  labs(title = "Frequentie van Startactiviteiten", x = "Startactiviteiten", y = "Frequentie") +
+  theme_minimal()
+
+ggplot(end_summary, aes(x = reorder(end_activity, count_end), y = count_end)) +
+  geom_bar(stat = "identity", fill = "red") +
+  coord_flip() +
+  labs(title = "Frequentie van Eindactiviteiten", x = "Eindactiviteiten", y = "Frequentie") +
+  theme_minimal()
+```
+
+>>>>>>> 1ad917f9895bdfed890f068c8db1db345c76ecb4
 ```{r}
 # precedence matrix geplot en niet geplot
 
-processmapR::precedence_matrix(eventlog)
-processmapR::precedence_matrix(eventlog) %>% plot
+activity_frequency(eventlog_cluster, level = "activity") %>% plot()
+```
+
+```{r}
+# precedence matrix geplot en niet geplot
+
+processmapR::precedence_matrix(eventlog_exploratory)
+processmapR::precedence_matrix(eventlog_exploratory) %>% plot
+
+
 ```
 
 ```{r}
 # trace explorer for frequent traces
 
-processmapR::trace_explorer(eventlog)
+processmapR::trace_explorer(eventlog_cluster, n_traces = 5)
 ```
 
-```{r}
-# process map
-processmapR::process_map(eventlog)
-```
-
-```{r}
-# trace explorer for infrequent traces
-
-processmapR::trace_explorer(eventlog, type = "infrequent", n_traces = 5)
-```
 
 ```{r}
 # dotted chart
 
-processmapR::dotted_chart(eventlog) #error -->oplossen nog geen tijd gehad
+eventlog_cluster %>% dotted_chart(x = "relative")
 ```
 
 ```{r}
-# resource map
 
+<<<<<<< HEAD
 processmapR::resource_map(eventlog_ellen)
 ```
 
@@ -607,4 +791,8 @@ processmapR::resource_map(eventlog_ellen)
 
 processmapR::resource_matrix(eventlog)
 processmapR::resource_matrix(eventlog_ellen) %>% plot
+=======
+processmapR::precedence_matrix(eventlog_cluster) %>% plot
+
+>>>>>>> 1ad917f9895bdfed890f068c8db1db345c76ecb4
 ```
