@@ -125,7 +125,7 @@ number_of_traces(eventlog_exploratory)
 eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
 ```
 
-<<<<<<< HEAD
+
 # Exploratieve analyse Ellen
 ```{r}
 eventlog_ellen <- simple_eventlog(
@@ -371,7 +371,8 @@ eventlog_ellen %>%
   slice(1:10)
 eventlog_ellen %>%
   size_of_repetitions(level = "resource", type = "repeat") %>% plot()
-=======
+```
+
 ```{r}
 # Clusteren van bepaalde activiteiten om de visualisaties makkelijker te maken
 
@@ -448,12 +449,10 @@ eventlog_cluster_widebeforebedragen <- eventlog_cluster_widebeforebedragen %>%
 print(eventlog_cluster_widebeforebedragen)
 
 false_count_before_threeway <- sum(eventlog_cluster_widebeforebedragen$three_way_match == FALSE, na.rm = TRUE)
->>>>>>> 1ad917f9895bdfed890f068c8db1db345c76ecb4
 
 ```
 
 ```{r}
-<<<<<<< HEAD
 eventlog_ellen %>%
   size_of_repetitions(level = "resource-activity", type = "repeat") %>% 
   arrange(desc(total)) %>% 
@@ -465,11 +464,6 @@ eventlog_ellen %>%
 eventlog_ellen %>%
   size_of_repetitions(level = "resource-activity", type = "repeat") %>% plot()
 ```
-
-
-
-
-
 
 ```{r}
 eventlog_ellen %>%
@@ -520,11 +514,6 @@ eventlog_ellen %>%
   slice(1:10)
 ```
 
-
-
-
-
-
 ```{r}
 eventlog_ellen %>% 
   start_activities(level = "log") 
@@ -561,10 +550,6 @@ eventlog_ellen %>%
 ```
 Op "resource-activity"-niveau toont deze metriek voor elke voorkomende resource-activiteitscombinatie het absolute en relatieve aantal keren dat deze resource deze activiteit uitvoert als startactiviteit in een case.
 
-
-
-
-
 ```{r}
 eventlog_ellen %>% 
   throughput_time(level = "log", units = "weeks") %>% plot()
@@ -590,10 +575,6 @@ eventlog_ellen %>%
 ```
 Op "trace"-niveau, de doorlooptijd van de verschillende procesvarianten of traces in het log worden berekend.
 
-
-
-
-
 ```{r}
 eventlog_ellen %>% 
   trace_coverage(level = "log") 
@@ -613,10 +594,6 @@ eventlog_ellen %>%
 ```
 Op "trace"-niveau worden de absolute en relatieve frequentie van elke trace geretourneerd.
 
-
-
-
-
 ```{r}
 eventlog_ellen %>% 
   trace_length(level = "log") 
@@ -635,15 +612,9 @@ eventlog_ellen %>%
   trace_length(level = "trace") 
 ```
 Op "trace"-niveau, worden de tracelengte van de verschillende procesvarianten of traces in het log berekend.
-
-
-
-
 # Rest
 
-
-
-=======
+```{r}
 #Precedence matrix opmaken voor de regel van de factuur na de GR te hebben
 eventlog_cluster_after3 <- eventlog_cluster_after %>%
   filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt"))
@@ -751,7 +722,6 @@ ggplot(end_summary, aes(x = reorder(end_activity, count_end), y = count_end)) +
   theme_minimal()
 ```
 
->>>>>>> 1ad917f9895bdfed890f068c8db1db345c76ecb4
 ```{r}
 # precedence matrix geplot en niet geplot
 
@@ -773,7 +743,6 @@ processmapR::precedence_matrix(eventlog_exploratory) %>% plot
 processmapR::trace_explorer(eventlog_cluster, n_traces = 5)
 ```
 
-
 ```{r}
 # dotted chart
 
@@ -781,8 +750,6 @@ eventlog_cluster %>% dotted_chart(x = "relative")
 ```
 
 ```{r}
-
-<<<<<<< HEAD
 processmapR::resource_map(eventlog_ellen)
 ```
 
@@ -791,8 +758,6 @@ processmapR::resource_map(eventlog_ellen)
 
 processmapR::resource_matrix(eventlog)
 processmapR::resource_matrix(eventlog_ellen) %>% plot
-=======
-processmapR::precedence_matrix(eventlog_cluster) %>% plot
 
->>>>>>> 1ad917f9895bdfed890f068c8db1db345c76ecb4
+processmapR::precedence_matrix(eventlog_cluster) %>% plot
 ```
