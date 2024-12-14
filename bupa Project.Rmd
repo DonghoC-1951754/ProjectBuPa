@@ -725,7 +725,13 @@ ggplot(end_summary, aes(x = reorder(end_activity, count_end), y = count_end)) +
 ```{r}
 # precedence matrix geplot en niet geplot
 
-activity_frequency(eventlog_cluster, level = "activity") %>% plot()
+activity_frequency(eventlog_cluster, level = "activity") %>%
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  filter(Percentage > 0.007) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + geom_col() +
+  geom_text(aes(label = round(Percentage, 4))) +
+  labs(x = "Percentage", y = "Activiteiten", title = "Activiteitsfrequentie")
+
 ```
 
 ```{r}
