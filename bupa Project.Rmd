@@ -767,3 +767,49 @@ processmapR::resource_matrix(eventlog_ellen) %>% plot
 
 processmapR::precedence_matrix(eventlog_cluster) %>% plot
 ```
+
+```{r}
+eventlog_exploratory %>% throughput_time("trace")
+```
+# Ruwe schets van de throughput times, gefilterd op het facturatieproces. We kunnen uit de tabellen van de trace vb. kijken welke het langste duurt enzo. De plot van 'case' geeft een staafdiagram (duurt lang om te laden), en de plot van 'log' geeft een boxplot weer
+```{r}
+facturatieproces <- eventlog_exploratory %>% filter(eventconceptname %in% c("Record Goods Receipt", "Record Invoice Receipt", "Clear Invoice"))
+
+facturatieproces %>% throughput_time("case", unit = "days") %>% plot()
+
+facturatieproces %>% throughput_time("log") %>% plot()
+
+facturatieproces %>% throughput_time("trace")  # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
+
+```{r}
+
+```
