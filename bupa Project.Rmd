@@ -577,6 +577,13 @@ eventlog_cluster_consignment <- eventlog_cluster %>%
 ```
 
 ```{r}
+write.csv(eventlog_cluster_before, "clustereddatabefore.csv", row.names = FALSE)
+write.csv(eventlog_cluster_after, "clustereddataafter.csv", row.names = FALSE)
+write.csv(eventlog_cluster_twoway, "clustereddatatwo.csv", row.names = FALSE)
+write.csv(eventlog_cluster_consignment, "clustereddatacon.csv", row.names = FALSE)
+```
+
+```{r}
 #filteren om te kijken of er een goods receipt aanwezig is
 
 eventlog_cluster_before_check <- eventlog_cluster_before3 %>%
