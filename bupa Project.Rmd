@@ -391,68 +391,6 @@ write.csv(eventlog_cluster, "clustereddata.csv", row.names = FALSE)
 ```
 
 ```{r}
-#Checken of er een correcte procesuitvoering wordt uitgevoerd (zie projectbeschrijving die 4 regels)
-
-eventlog_cluster_before <- eventlog_cluster %>% filter(caseItemCategory == "3-way match, invoice before GR")
-
-eventlog_cluster_before2 <- eventlog_cluster_before %>%
-  filter(caseGRBasedInvVerif == FALSE)
-
-eventlog_cluster_after <- eventlog_cluster %>%
-  filter(caseItemCategory == "3-way match, invoice after GR")
-
-eventlog_cluster_after2 <- eventlog_cluster_after %>%
-  filter(caseGRBasedInvVerif == TRUE)
-
-eventlog_cluster_twoway <- eventlog_cluster %>%
-  filter(caseItemCategory == "2-way match")
-
-eventlog_cluster_twoway2 <- eventlog_cluster_twoway %>%
-  filter(caseGoodsReceipt == FALSE)
-
-eventlog_cluster_consignment <- eventlog_cluster %>%
-  filter(caseItemType == "Consignment")
-```
-
-```{r}
-#filteren om te kijken of er een goods receipt aanwezig is
-
-eventlog_cluster_before_check <- eventlog_cluster_before3 %>%
-  filter(caseGoodsReceipt == TRUE)
-```
-
-```{r}
-#Precedence matrix opmaken voor de regel van de factuur voor de GR te analyseren.
-eventlog_cluster_before3 <- eventlog_cluster_before %>%
-  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt"))
-
-
-
-eventlog_cluster_before3 %>% precedence_matrix(type = "relative-antecedent") %>% plot()
-```
-
-```{r}
-#kijken of de bedragen overeenkomen voor invoice before GR
-eventlog_cluster_beforebedragen <- eventlog_cluster_before %>%
-  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt", "Create Purchase Order Item")) %>%
-  select(caseconceptname, eventconceptname, eventCumulativenetworthEUR, eventtimetimestamp)
-
-eventlog_cluster_widebeforebedragen <- eventlog_cluster_beforebedragen %>%
-  group_by(caseconceptname) %>%
-  summarise(PO_value = max(eventCumulativenetworthEUR[eventconceptname == "Create Purchase Order Item"], na.rm = TRUE),
-            GR_value = max(eventCumulativenetworthEUR[eventconceptname == "Record Goods Receipt"], na.rm = TRUE),
-            Invoice_value = max(eventCumulativenetworthEUR[eventconceptname %in% c("Vendor creates invoice", "Record Invoice Receipt")], na.rm = TRUE))
-
-eventlog_cluster_widebeforebedragen <- eventlog_cluster_widebeforebedragen %>%
-  mutate(three_way_match = PO_value == GR_value & GR_value == Invoice_value)
-
-print(eventlog_cluster_widebeforebedragen)
-
-false_count_before_threeway <- sum(eventlog_cluster_widebeforebedragen$three_way_match == FALSE, na.rm = TRUE)
-
-```
-
-```{r}
 eventlog_ellen %>%
   size_of_repetitions(level = "resource-activity", type = "repeat") %>% 
   arrange(desc(total)) %>% 
@@ -615,13 +553,76 @@ Op "trace"-niveau, worden de tracelengte van de verschillende procesvarianten of
 # Rest
 
 ```{r}
+#Checken of er een correcte procesuitvoering wordt uitgevoerd (zie projectbeschrijving die 4 regels)
+
+eventlog_cluster_before <- eventlog_cluster %>% filter(caseItemCategory == "3-way match, invoice before GR")
+
+eventlog_cluster_before2 <- eventlog_cluster_before %>%
+  filter(caseGRBasedInvVerif == FALSE)
+
+eventlog_cluster_after <- eventlog_cluster %>%
+  filter(caseItemCategory == "3-way match, invoice after GR")
+
+eventlog_cluster_after2 <- eventlog_cluster_after %>%
+  filter(caseGRBasedInvVerif == TRUE)
+
+eventlog_cluster_twoway <- eventlog_cluster %>%
+  filter(caseItemCategory == "2-way match")
+
+eventlog_cluster_twoway2 <- eventlog_cluster_twoway %>%
+  filter(caseGoodsReceipt == FALSE)
+
+eventlog_cluster_consignment <- eventlog_cluster %>%
+  filter(caseItemType == "Consignment")
+```
+
+```{r}
+#filteren om te kijken of er een goods receipt aanwezig is
+
+eventlog_cluster_before_check <- eventlog_cluster_before3 %>%
+  filter(caseGoodsReceipt == TRUE)
+```
+
+```{r}
+#Precedence matrix opmaken voor de regel van de factuur voor de GR te analyseren.
+eventlog_cluster_before3 <- eventlog_cluster_before %>%
+  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt"))
+
+
+
+eventlog_cluster_before3 %>% precedence_matrix(type = "relative-antecedent") %>% plot()
+```
+
+```{r}
+#kijken of de bedragen overeenkomen voor invoice before GR
+eventlog_cluster_beforebedragen <- eventlog_cluster_before %>%
+  filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt", "Create Purchase Order Item")) %>%
+  select(caseconceptname, eventconceptname, eventCumulativenetworthEUR, eventtimetimestamp)
+
+eventlog_cluster_widebeforebedragen <- eventlog_cluster_beforebedragen %>%
+  group_by(caseconceptname) %>%
+  summarise(PO_value = max(eventCumulativenetworthEUR[eventconceptname == "Create Purchase Order Item"], na.rm = TRUE),
+            GR_value = max(eventCumulativenetworthEUR[eventconceptname == "Record Goods Receipt"], na.rm = TRUE),
+            Invoice_value = max(eventCumulativenetworthEUR[eventconceptname %in% c("Vendor creates invoice", "Record Invoice Receipt")], na.rm = TRUE))
+
+eventlog_cluster_widebeforebedragen <- eventlog_cluster_widebeforebedragen %>%
+  mutate(three_way_match = PO_value == GR_value & GR_value == Invoice_value)
+
+print(eventlog_cluster_widebeforebedragen)
+
+false_count_before_threeway <- sum(eventlog_cluster_widebeforebedragen$three_way_match == FALSE, na.rm = TRUE)
+
+```
+
+```{r}
 #Precedence matrix opmaken voor de regel van de factuur na de GR te hebben
 eventlog_cluster_after3 <- eventlog_cluster_after %>%
   filter(eventconceptname %in% c("Vendor creates invoice", "Record Goods Receipt", "Record Invoice Receipt"))
 
 
+eventlog_cluster_after3 %>% precedence_matrix(type = "relative-antecedent")  %>% 
+  plot()
 
-eventlog_cluster_after3 %>% precedence_matrix(type = "relative-antecedent") %>% plot()
 ```
 
 ```{r}
