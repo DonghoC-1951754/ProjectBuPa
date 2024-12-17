@@ -274,11 +274,6 @@ eventlog_ellen %>%
 ```
 Op het "resource-activiteit"-niveau geeft deze metriek een lijst van alle resource-activiteitcombinaties met het absolute en relatieve aantal cases waarin elke resource-activiteitcombinatie is betrokken.
 
-
-
-
-
-
 ```{r}
 eventlog_ellen %>% 
   resource_specialisation(level = "log")
@@ -290,10 +285,6 @@ Op "log"-niveau biedt deze metriek samenvattende statistieken over het aantal af
 
 
 ```{r}
-library(ggplot2)
-
-
-
 eventlog_ellen %>% 
   resource_specialisation(level = "activity") %>% 
   rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
@@ -319,9 +310,6 @@ eventlog_ellen %>%
   slice(1:10) %>% plot()
 ```
 Op "resource"-niveau toont deze metriek het absolute en relatieve aantal afzonderlijke activiteiten dat elke resource uitvoert.
-
-
-
 
 
 !!! FF KIJKEN WELKE TYPE IK MOET GEBRUIKEN !!!
@@ -373,22 +361,6 @@ eventlog_ellen %>%
   size_of_repetitions(level = "resource", type = "repeat") %>% plot()
 ```
 
-```{r}
-# Clusteren van bepaalde activiteiten om de visualisaties makkelijker te maken
-
-eventlog_cluster <- eventlog_exploratory %>%
-  mutate(eventconceptname = case_when(
-    eventconceptname %in% c("SRM: Created", "SRM: Change was Transmitted", "SRM: Document Completed", "SRM: Awaiting Approval", "SRM: Complete", "SRM: In Transfer to Execution Syst.", "SRM: Ordered", "SRM: Deleted", "SRM: Transaction Completed", "SRM: Incomplete", "SRM: Held", "SRM: Transfer Failed (E.Sys.)") ~ "SRM",
-    eventconceptname %in% c("Change Currency", "Change Price", "Change Quantity") ~ "Change price/quantity/currency",
-    TRUE ~ eventconceptname
-  ))
-```
-
-```{r}
-# Data exporteren csv om een procesmap in Disco te kunnen maken
-
-write.csv(eventlog_cluster, "clustereddata.csv", row.names = FALSE)
-```
 
 ```{r}
 eventlog_ellen %>%
@@ -550,6 +522,25 @@ eventlog_ellen %>%
   trace_length(level = "trace") 
 ```
 Op "trace"-niveau, worden de tracelengte van de verschillende procesvarianten of traces in het log berekend.
+
+#Clustering van activiteiten
+```{r}
+# Clusteren van bepaalde activiteiten om de visualisaties makkelijker te maken
+
+eventlog_cluster <- eventlog_exploratory %>%
+  mutate(eventconceptname = case_when(
+    eventconceptname %in% c("SRM: Created", "SRM: Change was Transmitted", "SRM: Document Completed", "SRM: Awaiting Approval", "SRM: Complete", "SRM: In Transfer to Execution Syst.", "SRM: Ordered", "SRM: Deleted", "SRM: Transaction Completed", "SRM: Incomplete", "SRM: Held", "SRM: Transfer Failed (E.Sys.)") ~ "SRM",
+    eventconceptname %in% c("Change Currency", "Change Price", "Change Quantity") ~ "Change price/quantity/currency",
+    TRUE ~ eventconceptname
+  ))
+```
+
+```{r}
+# Data exporteren csv om een procesmap in Disco te kunnen maken
+
+write.csv(eventlog_cluster, "clustereddata.csv", row.names = FALSE)
+```
+
 # Rest
 
 ```{r}
@@ -790,12 +781,44 @@ facturatieproces %>% throughput_time("log") %>% plot()
 facturatieproces %>% throughput_time("trace")  # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
 ```
 
+#Onderzoeksvraag 3: Afwijkingen
 ```{r}
+eventlog_ond3 <- simple_eventlog(
+  data_exploratory, 
+  case_id = "casePurchasingDocument",
+  activity_id = "eventconceptname",
+  resource_id = "eventorgresource",
+  timestamp = "eventtimetimestamp"
+  )
 
+eventlog_ond3 <- eventlog_ond3 %>%
+  mutate(eventconceptname = case_when(
+    eventconceptname %in% c("SRM: Created", "SRM: Change was Transmitted", "SRM: Document Completed", "SRM: Awaiting Approval", "SRM: Complete", "SRM: In Transfer to Execution Syst.", "SRM: Ordered", "SRM: Deleted", "SRM: Transaction Completed", "SRM: Incomplete", "SRM: Held", "SRM: Transfer Failed (E.Sys.)") ~ "SRM",
+    eventconceptname %in% c("Change Currency", "Change Price", "Change Quantity") ~ "Change price/quantity/currency",
+    TRUE ~ eventconceptname
+  ))
 ```
-
+#Infrequente traces
 ```{r}
+traces <- eventlog_ond3 %>%
+  arrange(caseconceptname, eventtimetimestamp) %>%
+  group_by(caseconceptname) %>%
+  summarise(trace = paste(eventconceptname, collapse = " -> ")) %>% 
+  ungroup()
 
+trace_summary <- traces %>%
+  group_by(trace) %>%
+  summarise(absolute_frequency = n())
+
+infrequent_traces <- trace_summary %>%
+  filter(absolute_frequency <= 3)
+
+summary(infrequent_traces)
+sum(infrequent_traces$absolute_frequency == 3)
+sum(infrequent_traces$absolute_frequency == 2)
+sum(infrequent_traces$absolute_frequency == 1)
+
+max(trace_summary$absolute_frequency)
 ```
 
 ```{r}
