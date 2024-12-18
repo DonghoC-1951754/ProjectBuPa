@@ -71,10 +71,7 @@ print(cornerstones)
 documents <- unique(data$`case Purch. Doc. Category name`)
 print(documents)
 ```
-
 ```{r}
-# Exploratory analysis (Dongho)
-
 # Remove special characters from raw data (activity_frequency() doesn't work on the original eventlog)
 data_exploratory <- data
 colnames(data_exploratory) <- gsub("[^[:alnum:]_]", "", colnames(data))
@@ -87,443 +84,41 @@ eventlog_exploratory <- simple_eventlog(
   resource_id = "eventorgresource",
   timestamp = "eventtimetimestamp"
   )
-
-# Activity frequency
-eventlog_exploratory %>% activity_frequency(level = "activity") %>% plot()
-eventlog_exploratory %>% activity_frequency(level = "trace") %>% plot()
-eventlog_exploratory %>% activity_frequency(level = "case")
-eventlog_exploratory %>% activity_frequency(level = "log")
-
-# Activity presence (= in what percentage of cases is each activity type present)
-activity_presence(eventlog_exploratory)
-
-# End activities 
-eventlog_exploratory %>% end_activities(level = "log")
-eventlog_exploratory %>% end_activities(level = "activity")
-
-# Idle time (amount of time that no activity occurs)
-eventlog_exploratory %>% idle_time(level = "log", units = "hours")
-eventlog_exploratory %>% idle_time(level = "case", units = "weeks")
-#trace_idle_time <- eventlog_exploratory %>% idle_time(level = "trace", units = "weeks")
-#write_csv(trace_idle_time, "trace_idle_time.csv")
-eventlog_exploratory %>% idle_time(level = "resource", units = "hours")
-
-# Number of repetitions
-eventlog_exploratory %>% number_of_repetitions(level = "log")
-eventlog_exploratory %>% number_of_repetitions(level = "case")
-eventlog_exploratory %>% number_of_repetitions(level = "activity") %>% plot()
-
-# Number of self loops
-eventlog_exploratory %>% number_of_selfloops(level = "log", type = "repeat")
-eventlog_exploratory %>% number_of_selfloops(level = "case", type = "repeat")
-eventlog_exploratory %>% number_of_selfloops(level = "activity", type = "repeat") %>% plot()
-
-# Number of traces
-number_of_traces(eventlog_exploratory)
-
-# Processing time
-eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
 ```
-
-
-# Exploratieve analyse Ellen
-```{r}
-eventlog_ellen <- simple_eventlog(
-  data_exploratory, 
-  case_id = "caseconceptname",
-  activity_id = "eventconceptname",
-  timestamp = "eventtimetimestamp", 
-  resource_id = "eventorgresource"
-  )
-```
-
 
 ```{r}
 #aantal cases dat beschreve zijn in de evnt log
-n_cases(eventlog)
-n_cases(eventlog_ellen)
+n_cases(eventlog_exploratory)
 ```
 
 ```{r}
 #aantal activiteitenin event log
-n_activities(eventlog)
-n_activities(eventlog_ellen)
+n_activities(eventlog_exploratory)
 ```
 
 ```{r}
 #labels van de activiteiten
-activity_labels(eventlog)
-activity_table <- tibble(Activity = activity_labels(eventlog))
-pander(activity_table)
-
-activity_labels(eventlog_ellen)
-activity_table <- tibble(Activity = activity_labels(eventlog_ellen))
-pander(activity_table)
+activity_labels(eventlog_exploratory)
 ```
 
 ```{r}
 #Geeft weer hoe vaak iedere activiteit voorkomt
-activities(eventlog_ellen) 
+activities(eventlog_exploratory) 
 #output klopt precies niet want die geeft dat niet weer per activiteit
 ```
 
-```{r}
-#lijst van aale traces
-traces(eventlog)
-```
+# analyse & procesmodellen
+
+
+## frequentie activiteiten --> argumentatie voor clustering
 
 ```{r}
-#visualiseert de traces
-trace_explorer(eventlog, n_traces = 10)
-```
-
-```{r}
-#aantal traces
-n_traces(eventlog)
-```
-
-```{r}
-process_map(eventlog)
-```
-
-```{r}
-resource_frequency(eventlog_ellen, level = "resource")
+eventlog_exploratory %>% activity_frequency(level = "activity") %>% plot()
 ```
 
 
-```{r}
-eventlog_ellen %>% 
-  resource_frequency(level = "log") 
-eventlog_ellen %>% 
-  resource_frequency(level = "log") %>% plot()
-```
-Geeft de statistics weer over hoe vaak een resource en activiteit uitvoert in een hele log.
 
-```{r}
-eventlog_ellen %>% 
-  resource_frequency(level = "case")
-eventlog_ellen %>% 
-  resource_frequency(level = "case") %>% plot()
-```
-Wordt gebruikt om een beter beeld te krijgen tussen de variantie tussen verschillende cases om inzicht te krijgen in het aantal verschillende resources dat aan elke cae werkt, samen met het aantal activiteiten dat een resource per case uitvoert.
-
-
-```{r}
-eventlog_ellen %>% 
-  resource_frequency(level = "activity")
-eventlog_ellen %>% 
-  resource_frequency(level = "activity")%>% plot()
-```
-Geeft de resourcefrequentie aan hoeveel verschillende resources een specifieke activiteit uitvoeren in het volledige logboek.
-
-
-```{r}
-eventlog_ellen %>% 
-  resource_frequency(level = "resource") %>% 
-  filter(absolute > 10000) %>% plot
-eventlog_ellen %>% 
-  resource_frequency(level = "resource") %>% plot()
-```
-Deze metriek toont eenvoudigweg de absolute en relatieve frequentie van voorkomens van elke resource in het volledige logboek.
-
-```{r}
-eventlog_ellen %>% 
-  resource_frequency(level = "resource-activity") 
-eventlog_ellen %>% 
-  resource_frequency(level = "resource-activity") %>% plot()
-```
-Kan het absolute en relatieve aantal keren dat elke resourceactiviteitscombinatie voorkomt in het volledige logboek worden berekend. Hier worden twee verschillende relatieve getallen gegeven, één vanuit het resourceperspectief en één vanuit het activiteitenperspectief. Vanuit het resourceperspectief is de noemer het totale aantal uitvoeringen door de resource in kwestie. Vanuit het activiteitenperspectief is de noemer het totale aantal voorkomens van de activiteit in kwestie.
-
-
-
-
-```{r}
-eventlog_ellen %>%
-  resource_involvement(level = "case") %>% 
-  filter(relative > 0.01) %>% plot()
-eventlog_ellen %>%
-  resource_involvement(level = "case") %>% 
-  filter(relative > 0.015) %>% plot()
-eventlog_ellen %>%
-  resource_involvement(level = "case") %>% 
-  filter(relative > 0.02) %>% plot()
-eventlog_ellen %>%
-  resource_involvement(level = "case") %>% 
-  filter(relative > 0.03) %>% plot()
-eventlog_ellen %>%
-  resource_involvement(level = "case") %>% plot()
-```
-Op het "case"-niveau wordt het absolute en relatieve aantal afzonderlijke resources die activiteiten in elk geval uitvoeren, berekend om een overzicht te krijgen van welke gevallen door een kleine hoeveelheid resources worden afgehandeld en welke gevallen meer resources nodig hebben, wat duidt op een hoger niveau van variantie in het proces.
-
-```{r}
-eventlog_ellen %>%
-  resource_involvement(level = "resource") %>% 
-  filter(absolute > 10000) %>% plot()
-eventlog_ellen %>%
-  resource_involvement(level = "resource") %>% plot()
-```
-Op het "resource"-niveau geeft deze metriek het absolute en relatieve aantal cases waarin elke resource is betrokken, wat aangeeft welke resources "noodzakelijker" zijn binnen het proces dan de andere.
-
-
-```{r}
-eventlog_ellen %>%
-  resource_involvement(level = "resource-activity") %>% 
-  filter(absolute > 10000) %>% plot()
-eventlog_ellen %>%
-  resource_involvement(level = "resource-activity") %>% plot()
-```
-Op het "resource-activiteit"-niveau geeft deze metriek een lijst van alle resource-activiteitcombinaties met het absolute en relatieve aantal cases waarin elke resource-activiteitcombinatie is betrokken.
-
-```{r}
-eventlog_ellen %>% 
-  resource_specialisation(level = "log")
-eventlog_ellen %>% 
-  resource_specialisation(level = "log") %>% plot()
-
-```
-Op "log"-niveau biedt deze metriek samenvattende statistieken over het aantal afzonderlijke activiteiten dat per resource wordt uitgevoerd.
-
-
-```{r}
-eventlog_ellen %>% 
-  resource_specialisation(level = "activity") %>% 
-  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
-  filter(Percentage > 0.1) %>%
-  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + geom_col() +
-  labs(x = "Percentage", y = "Activiteiten", title = "Resource specialisatie")
-
-```
-Op "activiteit"-niveau biedt deze metriek een overzicht van het absolute en relatieve aantal verschillende resources die deze activiteit uitvoeren binnen het volledige log. Dit geeft inzicht in de activiteiten waarin resources gespecialiseerd zijn.
-
-```{r}
-eventlog_ellen %>% 
-  resource_specialisation(level = "resource")
-eventlog_ellen %>% 
-  resource_specialisation(level = "resource") %>% plot()
-eventlog_ellen %>% 
-  resource_specialisation(level = "resource") %>% 
-  filter(absolute > 10) %>% 
-  slice(1:10) %>% plot()
-eventlog_ellen %>% 
-  resource_specialisation(level = "resource") %>% 
-  filter(absolute < 2) %>% 
-  slice(1:10) %>% plot()
-```
-Op "resource"-niveau toont deze metriek het absolute en relatieve aantal afzonderlijke activiteiten dat elke resource uitvoert.
-
-
-!!! FF KIJKEN WELKE TYPE IK MOET GEBRUIKEN !!!
-```{r}
-
-eventlog_ellen %>%
-  size_of_repetitions(level = "log", type = "repeat")
-eventlog_ellen %>%
-  size_of_repetitions(level = "log", type = "repeat") %>% plot()
-```
-
-```{r}
-eventlog_ellen %>%
-  size_of_repetitions(level = "case", type = "repeat") %>% 
-  arrange(desc(number_of_selfloops)) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_repetitions(level = "case", type = "repeat") %>% 
-  arrange(number_of_selfloops) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_repetitions(level = "case", type = "repeat") %>% plot()
-```
-
-```{r}
-eventlog_ellen %>%
-  size_of_repetitions(level = "activity", type = "repeat") %>% 
-  arrange(number_of_selfloops) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_repetitions(level = "activity", type = "repeat") %>% 
-  arrange(desc(number_of_selfloops)) %>% 
-  slice(1:10)
-
-eventlog_ellen %>%
-  size_of_repetitions(level = "activity", type = "repeat") %>% plot()
-```
-
-```{r}
-eventlog_ellen %>%
-  size_of_repetitions(level = "resource", type = "repeat") %>% 
-  arrange(total) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_repetitions(level = "resource", type = "repeat") %>% 
-  arrange(desc(total)) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_repetitions(level = "resource", type = "repeat") %>% plot()
-```
-
-
-```{r}
-eventlog_ellen %>%
-  size_of_repetitions(level = "resource-activity", type = "repeat") %>% 
-  arrange(desc(total)) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_repetitions(level = "resource-activity", type = "repeat") %>% 
-  arrange(total) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_repetitions(level = "resource-activity", type = "repeat") %>% plot()
-```
-
-```{r}
-eventlog_ellen %>%
-  size_of_selfloops(level = "log", type = "redo") 
-```
-
-```{r}
-eventlog_ellen %>%
-  size_of_selfloops(level = "case", type = "redo") %>% 
-  arrange(desc(total)) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_selfloops(level = "case", type = "redo") %>% 
-  arrange(total) %>% 
-  slice(1:10)
-```
-
-```{r}
-eventlog_ellen %>%
-  size_of_selfloops(level = "activity", type = "redo") %>% 
-  arrange(desc(total)) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_selfloops(level = "activity", type = "redo") %>% 
-  arrange(total) %>% 
-  slice(1:10)
-```
-
-```{r}
-eventlog_ellen %>%
-  size_of_selfloops(level = "resource", type = "redo") %>% 
-  arrange(desc(total)) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_selfloops(level = "resource", type = "redo") %>% 
-  arrange(total) %>% 
-  slice(1:10)
-```
-
-```{r}
-eventlog_ellen %>%
-  size_of_selfloops(level = "resource-activity", type = "redo") %>% 
-  arrange(desc(total)) %>% 
-  slice(1:10)
-eventlog_ellen %>%
-  size_of_selfloops(level = "resource-activity", type = "redo") %>% 
-  arrange(total) %>% 
-  slice(1:10)
-```
-
-```{r}
-eventlog_ellen %>% 
-  start_activities(level = "log") 
-```
-Op "log"-niveau toont deze metriek het absolute en relatieve aantal activiteiten die de eerste activiteit zijn in een of meer van de cases.
-
-```{r}
-eventlog_ellen %>% 
-  start_activities(level = "case") 
-```
-Op "case"-niveau biedt deze metriek een overzicht van de startactiviteit van elke case.
-
-```{r}
-eventlog_ellen %>% 
-  start_activities(level = "activity")
-eventlog_ellen %>% 
-  start_activities(level = "activity") %>% plot()
-```
-Op "activity"-niveau berekent deze metriek voor elke activiteit het absolute en relatieve aantal cases dat begint met dit activiteitstype. Net als de end_activities-metriek wordt het relatieve aantal berekend als een deel van het aantal cases, zijnde het aantal "opportunities" dat een activiteit de startactiviteit zou kunnen zijn. De cumulatieve som wordt opgeteld om inzicht te krijgen in het aantal activiteiten dat nodig is om een bepaald deel van het totaal te dekken.
-
-```{r}
-eventlog_ellen %>% 
-  start_activities(level = "resource")
-eventlog_ellen %>% 
-  start_activities(level = "resource") %>% plot()
-```
-Op "resource"-niveau wordt een overzicht gegeven van welke resources de eerste activiteit per case uitvoeren.
-
-```{r}
-eventlog_ellen %>% 
-  start_activities(level = "resource-activity") 
-eventlog_ellen %>% 
-  start_activities(level = "resource-activity") %>% plot()
-```
-Op "resource-activity"-niveau toont deze metriek voor elke voorkomende resource-activiteitscombinatie het absolute en relatieve aantal keren dat deze resource deze activiteit uitvoert als startactiviteit in een case.
-
-```{r}
-eventlog_ellen %>% 
-  throughput_time(level = "log", units = "weeks") %>% plot()
-eventlog_ellen %>% 
-  throughput_time(level = "log", units = "weeks")
-eventlog_ellen %>% 
-  throughput_time(level = "log", units = "days")
-```
-Op "log"-niveau, de samenvattende statistieken die de doorlooptijd van cases op een geaggregeerde manier beschrijven.
-
-```{r}
-eventlog_ellen %>% 
-  throughput_time(level = "case", units = "weeks") 
-eventlog_ellen %>% 
-  throughput_time(level = "case", units = "weeks") %>% plot()
-```
-Op "case"-niveau, wordt de doorlooptijd gedefinieerd als de totale duur van de case, of het verschil tussen de tijdstempel van de eindgebeurtenis en de tijdstempel van de startgebeurtenis van de case.
-Mogelijke idle_time() is ook opgenomen in deze berekening.
-
-```{r}
-eventlog_ellen %>% 
-  throughput_time(level = "trace", units = "weeks") 
-```
-Op "trace"-niveau, de doorlooptijd van de verschillende procesvarianten of traces in het log worden berekend.
-
-```{r}
-eventlog_ellen %>% 
-  trace_coverage(level = "log") 
-```
-Op "log"-niveau worden samenvattende statistieken van de dekking van traces geretourneerd.
-
-```{r}
-eventlog_ellen %>% 
-  trace_coverage(level = "case") 
-```
-Op "case"-niveau wordt de dekking van de overeenkomstige trace voor elke case geretourneerd.
-
-
-```{r}
-eventlog_ellen %>% 
-  trace_coverage(level = "trace") 
-```
-Op "trace"-niveau worden de absolute en relatieve frequentie van elke trace geretourneerd.
-
-```{r}
-eventlog_ellen %>% 
-  trace_length(level = "log") 
-```
-Op "log"-niveau, de samenvattende statistieken die de tracelengte van cases op een geaggregeerde manier beschrijven.
-
-```{r}
-eventlog_ellen %>% 
-  trace_length(level = "case") 
-```
-Op "case"-niveau, worden de tracelengtes voor elke case berekend.
-
-
-```{r}
-eventlog_ellen %>% 
-  trace_length(level = "trace") 
-```
-Op "trace"-niveau, worden de tracelengte van de verschillende procesvarianten of traces in het log berekend.
-
-#Clustering van activiteiten
+##Clustering van activiteiten
 ```{r}
 # Clusteren van bepaalde activiteiten om de visualisaties makkelijker te maken
 
@@ -541,8 +136,22 @@ eventlog_cluster <- eventlog_exploratory %>%
 write.csv(eventlog_cluster, "clustereddata.csv", row.names = FALSE)
 ```
 
-# Rest
+```{r}
+# Figuur 1
+#overzicht activiteit frequentie na clustering (enkel de eerste 11)
+eventlog_cluster %>% 
+  activity_frequency(level = "activity") %>% 
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  filter(Aantal > 11000) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + 
+  geom_col() + 
+  xlim(0, 0.25)+
+  labs(x = "Percentage", y = "Activiteiten", title = "Activiteitsfrequentie") +
+  geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
 
+```
+
+## analyse regels correcte procesuitvoering
 ```{r}
 #Checken of er een correcte procesuitvoering wordt uitgevoerd (zie projectbeschrijving die 4 regels)
 
@@ -664,6 +273,394 @@ false_count_twoway <- sum(eventlog_cluster_widetwowaybedragen$three_way_match ==
 
 ```
 
+## presedence matrix
+Ik weet niet welke code dat dat is , ik denk dat die hierboven ergens staat (:
+
+## Exploratieve analyse
+### activiteiten
+#### Activity presence
+```{r}
+# Figuur 10
+# Activity presence (= in what percentage of cases is each activity type present)
+activity_presence(eventlog_cluster) %>% 
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + 
+  geom_col() + 
+  labs(x = "Percentage", y = "Activiteiten") +
+  geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
+```
+
+#### eind activiteiten
+```{r}
+# End activities 
+eventlog_cluster %>% end_activities(level = "log")
+eventlog_cluster %>% end_activities(level = "activity")
+```
+
+```{r}
+#figuur 11
+eventlog_cluster %>% 
+  end_activities(level = "activity") %>% 
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + 
+  geom_col() + 
+  xlim(0, 0.8) +
+  labs(x = "Percentage", y = "Activiteiten") +
+  geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
+```
+
+#### start activiteiten
+```{r}
+eventlog_cluster %>% start_activities(level = "log") 
+eventlog_cluster %>% start_activities(level = "case")
+eventlog_cluster %>% start_activities(level = "activity")
+eventlog_cluster %>% start_activities(level = "resource")
+eventlog_cluster %>% start_activities(level = "resource-activity")
+```
+Op "log"-niveau toont deze metriek het absolute en relatieve aantal activiteiten die de eerste activiteit zijn in een of meer van de cases.
+Op "case"-niveau biedt deze metriek een overzicht van de startactiviteit van elke case.
+Op "activity"-niveau berekent deze metriek voor elke activiteit het absolute en relatieve aantal cases dat begint met dit activiteitstype. Net als de end_activities-metriek wordt het relatieve aantal berekend als een deel van het aantal cases, zijnde het aantal "opportunities" dat een activiteit de startactiviteit zou kunnen zijn. De cumulatieve som wordt opgeteld om inzicht te krijgen in het aantal activiteiten dat nodig is om een bepaald deel van het totaal te dekken.
+Op "resource"-niveau wordt een overzicht gegeven van welke resources de eerste activiteit per case uitvoeren.
+Op "resource-activity"-niveau toont deze metriek voor elke voorkomende resource-activiteitscombinatie het absolute en relatieve aantal keren dat deze resource deze activiteit uitvoert als startactiviteit in een case.
+
+```{r}
+#figuur 12
+eventlog_cluster %>% 
+  start_activities(level = "activity") %>%
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  slice(1:3) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + 
+  geom_col() + 
+  xlim(0, 0.85) +
+  labs(x = "Percentage", y = "Activiteiten") +
+  geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
+```
+
+### herhaling
+#### repetities
+```{r}
+# Number of repetitions
+eventlog_cluster %>% number_of_repetitions(level = "log")
+eventlog_cluster %>% number_of_repetitions(level = "case")
+
+#figuur 13
+eventlog_cluster %>% 
+  number_of_repetitions(level = "activity") %>% 
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + 
+  geom_col() + 
+  xlim(0, 0.15) +
+  labs(x = "Percentage", y = "Activiteiten") +
+  geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
+
+```
+```{r}
+
+eventlog_cluster %>%
+  size_of_repetitions(level = "log", type = "repeat")
+eventlog_cluster %>%
+  size_of_repetitions(level = "case", type = "repeat") eventlog_cluster %>%
+  size_of_repetitions(level = "activity", type = "repeat") 
+
+#figuur 14
+eventlog_cluster %>%
+  size_of_repetitions(level = "resource", type = "repeat") %>% 
+  arrange(desc(total)) %>% 
+  slice(1:10)
+
+eventlog_cluster %>%
+  size_of_repetitions(level = "resource-activity", type = "repeat") 
+```
+
+
+
+#### selfloops
+```{r}
+# Number of self loops
+eventlog_cluster %>% number_of_selfloops(level = "log", type = "repeat")
+eventlog_cluster %>% number_of_selfloops(level = "case", type = "repeat")
+
+#figuur 15
+eventlog_cluster %>% number_of_selfloops(level = "activity", type = "repeat") %>% 
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  slice(1:10) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + 
+  geom_col() + 
+  xlim(0, 0.15) +
+  labs(x = "Percentage", y = "Activiteiten") +
+  geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
+```
+
+```{r}
+eventlog_cluster %>%
+  size_of_selfloops(level = "log", type = "redo") 
+eventlog_cluster %>%
+  size_of_selfloops(level = "case", type = "redo")
+eventlog_cluster %>%
+  size_of_selfloops(level = "activity", type = "redo")
+
+#figuut 16
+eventlog_cluster %>%
+  size_of_selfloops(level = "resource", type = "redo") %>% 
+  arrange(desc(total)) %>% 
+  slice(1:10)
+
+eventlog_cluster %>%
+  size_of_selfloops(level = "resource-activity", type = "redo") 
+
+```
+
+### resources
+
+#### resource frequency
+```{r}
+eventlog_cluster %>% 
+  resource_frequency(level = "log") 
+eventlog_cluster %>% 
+  resource_frequency(level = "case")
+eventlog_cluster %>% 
+  resource_frequency(level = "activity") 
+eventlog_cluster %>% 
+  resource_frequency(level = "resource") 
+eventlog_cluster %>% 
+  resource_frequency(level = "resource-activity") 
+
+#figuur 18
+eventlog_cluster %>% resource_frequency(level = "activity") %>% 
+  plot()
+
+#figuur 19
+eventlog_cluster %>% 
+  resource_frequency(level = "resource") %>% 
+  filter(absolute > 10000) %>% plot
+```
+Log: Geeft de statistics weer over hoe vaak een resource en activiteit uitvoert in een hele log.
+Case: Wordt gebruikt om een beter beeld te krijgen tussen de variantie tussen verschillende cases om inzicht te krijgen in het aantal verschillende resources dat aan elke cae werkt, samen met het aantal activiteiten dat een resource per case uitvoert.
+Activity: Geeft de resourcefrequentie aan hoeveel verschillende resources een specifieke activiteit uitvoeren in het volledige logboek.
+Resource: Deze metriek toont eenvoudigweg de absolute en relatieve frequentie van voorkomens van elke resource in het volledige logboek.
+Resource-activity: Kan het absolute en relatieve aantal keren dat elke resourceactiviteitscombinatie voorkomt in het volledige logboek worden berekend. Hier worden twee verschillende relatieve getallen gegeven, één vanuit het resourceperspectief en één vanuit het activiteitenperspectief. Vanuit het resourceperspectief is de noemer het totale aantal uitvoeringen door de resource in kwestie. Vanuit het activiteitenperspectief is de noemer het totale aantal voorkomens van de activiteit in kwestie.
+
+#### resource involvement
+```{r}
+#figuur 20
+eventlog_cluster %>%
+  resource_involvement(level = "case")
+```
+Op het "case"-niveau wordt het absolute en relatieve aantal afzonderlijke resources die activiteiten in elk geval uitvoeren, berekend om een overzicht te krijgen van welke gevallen door een kleine hoeveelheid resources worden afgehandeld en welke gevallen meer resources nodig hebben, wat duidt op een hoger niveau van variantie in het proces.
+
+```{r}
+eventlog_cluster %>%
+  resource_involvement(level = "resource") 
+```
+Op het "resource"-niveau geeft deze metriek het absolute en relatieve aantal cases waarin elke resource is betrokken, wat aangeeft welke resources "noodzakelijker" zijn binnen het proces dan de andere.
+
+
+```{r}
+#figuur 21
+eventlog_cluster %>%
+  resource_involvement(level = "resource-activity") %>% 
+  filter(absolute > 10000) %>% plot()
+```
+Op het "resource-activiteit"-niveau geeft deze metriek een lijst van alle resource-activiteitcombinaties met het absolute en relatieve aantal cases waarin elke resource-activiteitcombinatie is betrokken.
+
+
+#### resource specialisation
+```{r}
+#fig 22
+eventlog_cluster %>% 
+  resource_specialisation(level = "log") %>% plot()
+
+```
+Op "log"-niveau biedt deze metriek samenvattende statistieken over het aantal afzonderlijke activiteiten dat per resource wordt uitgevoerd.
+
+
+```{r}
+eventlog_cluster %>% 
+  resource_specialisation(level = "activity") %>% 
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  filter(Percentage > 0.1) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + geom_col() +
+  labs(x = "Percentage", y = "Activiteiten", title = "Resource specialisatie")
+
+```
+Op "activiteit"-niveau biedt deze metriek een overzicht van het absolute en relatieve aantal verschillende resources die deze activiteit uitvoeren binnen het volledige log. Dit geeft inzicht in de activiteiten waarin resources gespecialiseerd zijn.
+
+```{r}
+#fig 23
+
+eventlog_cluster %>% 
+  resource_specialisation(level = "resource") %>% 
+  filter(absolute > 10) %>% 
+  slice(1:10) %>% plot()
+eventlog_cluster %>% 
+  resource_specialisation(level = "resource") %>% 
+  filter(absolute < 2) %>% 
+  slice(1:10) %>% plot()
+```
+Op "resource"-niveau toont deze metriek het absolute en relatieve aantal afzonderlijke activiteiten dat elke resource uitvoert.
+
+### traces
+#### frequente traces
+```{r}
+#lijst van aale traces
+traces(eventlog_cluster)
+```
+
+```{r}
+#visualiseert de traces
+trace_explorer(eventlog_cluster, n_traces = 10)
+```
+
+```{r}
+#aantal traces
+n_traces(eventlog_cluster)
+```
+
+```{r}
+eventlog_cluster %>% 
+  trace_coverage(level = "log") 
+eventlog_cluster %>% 
+  trace_coverage(level = "case") 
+eventlog_cluster %>% 
+  trace_coverage(level = "trace")
+```
+Op "log"-niveau worden samenvattende statistieken van de dekking van traces geretourneerd.
+Op "case"-niveau wordt de dekking van de overeenkomstige trace voor elke case geretourneerd.
+Op "trace"-niveau worden de absolute en relatieve frequentie van elke trace geretourneerd.
+
+```{r}
+eventlog_cluster %>% 
+  trace_length(level = "log")
+eventlog_cluster %>% 
+  trace_length(level = "case") 
+eventlog_cluster %>% 
+  trace_length(level = "trace") 
+```
+Op "log"-niveau, de samenvattende statistieken die de tracelengte van cases op een geaggregeerde manier beschrijven.
+Op "case"-niveau, worden de tracelengtes voor elke case berekend.
+Op "trace"-niveau, worden de tracelengte van de verschillende procesvarianten of traces in het log berekend.
+
+```{r}
+#fig 24
+# trace explorer for frequent traces
+
+processmapR::trace_explorer(eventlog_cluster, n_traces = 10)
+```
+
+
+# Onderzoeksvraag 2: doorlooptijd van het facturatieproces
+
+
+# Onderzoeksvraag 3: Afwijkingen
+```{r}
+eventlog_ond3 <- simple_eventlog(
+  data_exploratory, 
+  case_id = "casePurchasingDocument",
+  activity_id = "eventconceptname",
+  resource_id = "eventorgresource",
+  timestamp = "eventtimetimestamp"
+  )
+
+eventlog_ond3 <- eventlog_ond3 %>%
+  mutate(eventconceptname = case_when(
+    eventconceptname %in% c("SRM: Created", "SRM: Change was Transmitted", "SRM: Document Completed", "SRM: Awaiting Approval", "SRM: Complete", "SRM: In Transfer to Execution Syst.", "SRM: Ordered", "SRM: Deleted", "SRM: Transaction Completed", "SRM: Incomplete", "SRM: Held", "SRM: Transfer Failed (E.Sys.)") ~ "SRM",
+    eventconceptname %in% c("Change Currency", "Change Price", "Change Quantity") ~ "Change price/quantity/currency",
+    TRUE ~ eventconceptname
+  ))
+```
+## Infrequente traces
+```{r}
+traces <- eventlog_ond3 %>%
+  arrange(caseconceptname, eventtimetimestamp) %>%
+  group_by(caseconceptname) %>%
+  summarise(trace = paste(eventconceptname, collapse = " -> ")) %>% 
+  ungroup()
+
+trace_summary <- traces %>%
+  group_by(trace) %>%
+  summarise(absolute_frequency = n())
+
+infrequent_traces <- trace_summary %>%
+  filter(absolute_frequency <= 3)
+
+summary(infrequent_traces)
+sum(infrequent_traces$absolute_frequency == 3)
+sum(infrequent_traces$absolute_frequency == 2)
+sum(infrequent_traces$absolute_frequency == 1)
+
+max(trace_summary$absolute_frequency)
+```
+
+
+---
+```{r}
+
+# Activity frequency
+eventlog_exploratory %>% activity_frequency(level = "activity") %>% plot()
+eventlog_exploratory %>% activity_frequency(level = "trace") %>% plot()
+eventlog_exploratory %>% activity_frequency(level = "case")
+eventlog_exploratory %>% activity_frequency(level = "log")
+
+# Activity presence (= in what percentage of cases is each activity type present)
+activity_presence(eventlog_exploratory)
+
+
+
+# Idle time (amount of time that no activity occurs)
+eventlog_exploratory %>% idle_time(level = "log", units = "hours")
+eventlog_exploratory %>% idle_time(level = "case", units = "weeks")
+#trace_idle_time <- eventlog_exploratory %>% idle_time(level = "trace", units = "weeks")
+#write_csv(trace_idle_time, "trace_idle_time.csv")
+eventlog_exploratory %>% idle_time(level = "resource", units = "hours")
+
+
+
+# Number of traces
+number_of_traces(eventlog_exploratory)
+
+# Processing time
+eventlog_exploratory %>% processing_time(level = "activity", units = "hours")
+```
+
+
+
+
+# rest 
+
+## Exploratieve analyse Ellen
+
+
+
+```{r}
+eventlog_cluster %>% 
+  throughput_time(level = "log", units = "weeks") %>% plot()
+eventlog_cluster %>% 
+  throughput_time(level = "log", units = "weeks")
+eventlog_cluster %>% 
+  throughput_time(level = "log", units = "days")
+```
+Op "log"-niveau, de samenvattende statistieken die de doorlooptijd van cases op een geaggregeerde manier beschrijven.
+
+```{r}
+eventlog_cluster %>% 
+  throughput_time(level = "case", units = "weeks") 
+eventlog_cluster %>% 
+  throughput_time(level = "case", units = "weeks") %>% plot()
+```
+Op "case"-niveau, wordt de doorlooptijd gedefinieerd als de totale duur van de case, of het verschil tussen de tijdstempel van de eindgebeurtenis en de tijdstempel van de startgebeurtenis van de case.
+Mogelijke idle_time() is ook opgenomen in deze berekening.
+
+```{r}
+eventlog_cluster %>% 
+  throughput_time(level = "trace", units = "weeks") 
+```
+Op "trace"-niveau, de doorlooptijd van de verschillende procesvarianten of traces in het log worden berekend.
+
+
+
 ```{r}
 # infrequente traces
 
@@ -742,11 +739,7 @@ processmapR::precedence_matrix(eventlog_exploratory) %>% plot
 
 ```
 
-```{r}
-# trace explorer for frequent traces
 
-processmapR::trace_explorer(eventlog_cluster, n_traces = 5)
-```
 
 ```{r}
 # dotted chart
@@ -755,7 +748,7 @@ eventlog_cluster %>% dotted_chart(x = "relative")
 ```
 
 ```{r}
-processmapR::resource_map(eventlog_ellen)
+processmapR::resource_map(eventlog_cluster)
 ```
 
 ```{r}
@@ -781,45 +774,7 @@ facturatieproces %>% throughput_time("log") %>% plot()
 facturatieproces %>% throughput_time("trace")  # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
 ```
 
-#Onderzoeksvraag 3: Afwijkingen
-```{r}
-eventlog_ond3 <- simple_eventlog(
-  data_exploratory, 
-  case_id = "casePurchasingDocument",
-  activity_id = "eventconceptname",
-  resource_id = "eventorgresource",
-  timestamp = "eventtimetimestamp"
-  )
 
-eventlog_ond3 <- eventlog_ond3 %>%
-  mutate(eventconceptname = case_when(
-    eventconceptname %in% c("SRM: Created", "SRM: Change was Transmitted", "SRM: Document Completed", "SRM: Awaiting Approval", "SRM: Complete", "SRM: In Transfer to Execution Syst.", "SRM: Ordered", "SRM: Deleted", "SRM: Transaction Completed", "SRM: Incomplete", "SRM: Held", "SRM: Transfer Failed (E.Sys.)") ~ "SRM",
-    eventconceptname %in% c("Change Currency", "Change Price", "Change Quantity") ~ "Change price/quantity/currency",
-    TRUE ~ eventconceptname
-  ))
-```
-#Infrequente traces
-```{r}
-traces <- eventlog_ond3 %>%
-  arrange(caseconceptname, eventtimetimestamp) %>%
-  group_by(caseconceptname) %>%
-  summarise(trace = paste(eventconceptname, collapse = " -> ")) %>% 
-  ungroup()
-
-trace_summary <- traces %>%
-  group_by(trace) %>%
-  summarise(absolute_frequency = n())
-
-infrequent_traces <- trace_summary %>%
-  filter(absolute_frequency <= 3)
-
-summary(infrequent_traces)
-sum(infrequent_traces$absolute_frequency == 3)
-sum(infrequent_traces$absolute_frequency == 2)
-sum(infrequent_traces$absolute_frequency == 1)
-
-max(trace_summary$absolute_frequency)
-```
 
 ```{r}
 
