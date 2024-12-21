@@ -806,13 +806,17 @@ facturatieproces %>% throughput_time("log", unit = "days") %>%
   scale_y_continuous(breaks = seq(0, 500, 50))
 options(scipen=0)
 
-facturatieproces %>% throughput_time("trace")  # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
+facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 5))) %>%
+  arrange(desc(relative_frequency)) %>% head(10) # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
 ```
 
 
 
 ```{r}
-
+facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 2))) %>%
+  arrange(desc(total))
 ```
 
 ```{r}
