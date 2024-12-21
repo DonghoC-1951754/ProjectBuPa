@@ -71,6 +71,7 @@ print(cornerstones)
 documents <- unique(data$`case Purch. Doc. Category name`)
 print(documents)
 ```
+
 ```{r}
 # Remove special characters from raw data (activity_frequency() doesn't work on the original eventlog)
 data_exploratory <- data
@@ -767,9 +768,13 @@ eventlog_exploratory %>% throughput_time("trace")
 ```{r}
 facturatieproces <- eventlog_exploratory %>% filter(eventconceptname %in% c("Record Goods Receipt", "Record Invoice Receipt", "Clear Invoice"))
 
-facturatieproces %>% throughput_time("case", unit = "days") %>% plot()
+facturatieproces %>% throughput_time("case", unit = "days")
 
-facturatieproces %>% throughput_time("log") %>% plot()
+facturatieproces %>% throughput_time("log", unit = "days")
+
+options(scipen=999)
+facturatieproces %>% throughput_time("log", unit = "days") %>% plot() + ylab("Doorlooptijd (in dagen)")
+options(scipen=0)
 
 facturatieproces %>% throughput_time("trace")  # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
 ```
