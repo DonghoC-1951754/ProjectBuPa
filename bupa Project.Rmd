@@ -773,7 +773,13 @@ facturatieproces %>% throughput_time("case", unit = "days")
 facturatieproces %>% throughput_time("log", unit = "days")
 
 options(scipen=999)
-facturatieproces %>% throughput_time("log", unit = "days") %>% plot() + ylab("Doorlooptijd (in dagen)")
+facturatieproces %>% throughput_time("log", unit = "days") %>%
+  plot()+ 
+  labs(
+    y = "Doorlooptijd (in dagen)",
+  )+
+  geom_boxplot(outlier.color = "red",  outlier.size = 1, outlier.shape = 16) +
+  scale_y_continuous(breaks = seq(0, 500, 50))
 options(scipen=0)
 
 facturatieproces %>% throughput_time("trace")  # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
