@@ -18,6 +18,7 @@ library(xesreadR)
 library(edeaR)
 library(processmapR)
 library(processmonitR)
+library(stringdist)
 
 #install.packages("bupaR")
 #install.packages("eventdataR")
@@ -25,6 +26,7 @@ library(processmonitR)
 #install.packages("edeaR")
 #install.packages("processmapR")
 #install.packages("processmonitR")
+#install.packages("stringdist")
 
 ```
 
@@ -71,6 +73,7 @@ print(cornerstones)
 documents <- unique(data$`case Purch. Doc. Category name`)
 print(documents)
 ```
+
 ```{r}
 # Remove special characters from raw data (activity_frequency() doesn't work on the original eventlog)
 data_exploratory <- data
@@ -87,12 +90,12 @@ eventlog_exploratory <- simple_eventlog(
 ```
 
 ```{r}
-#aantal cases dat beschreve zijn in de evnt log
+#aantal cases dat beschreven zijn in de evnt log
 n_cases(eventlog_exploratory)
 ```
 
 ```{r}
-#aantal activiteitenin event log
+#aantal activiteiten in event log
 n_activities(eventlog_exploratory)
 ```
 
@@ -273,8 +276,27 @@ false_count_twoway <- sum(eventlog_cluster_widetwowaybedragen$three_way_match ==
 
 ```
 
-## presedence matrix
-Ik weet niet welke code dat dat is , ik denk dat die hierboven ergens staat (:
+## precedence matrix
+```{r}
+# precedence matrix geplot en niet geplot
+
+activity_frequency(eventlog_cluster, level = "activity") %>%
+  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
+  filter(Percentage > 0.007) %>%
+  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + geom_col() +
+  geom_text(aes(label = round(Percentage, 4))) +
+  labs(x = "Percentage", y = "Activiteiten", title = "Activiteitsfrequentie")
+
+```
+
+```{r}
+# precedence matrix geplot en niet geplot
+
+processmapR::precedence_matrix(eventlog_exploratory)
+processmapR::precedence_matrix(eventlog_exploratory) %>% plot
+
+
+```
 
 ## Exploratieve analyse
 ### activiteiten
@@ -505,7 +527,7 @@ Op "resource"-niveau toont deze metriek het absolute en relatieve aantal afzonde
 ### traces
 #### frequente traces
 ```{r}
-#lijst van aale traces
+#lijst van alle traces
 traces(eventlog_cluster)
 ```
 
@@ -547,7 +569,7 @@ Op "trace"-niveau, worden de tracelengte van de verschillende procesvarianten of
 #fig 24
 # trace explorer for frequent traces
 
-processmapR::trace_explorer(eventlog_cluster, n_traces = 10)
+frequentietraces <- processmapR::trace_explorer(eventlog_cluster, n_traces = 10)
 ```
 
 
@@ -571,29 +593,53 @@ eventlog_ond3 <- eventlog_ond3 %>%
     TRUE ~ eventconceptname
   ))
 ```
+
 ## Infrequente traces
 ```{r}
 traces <- eventlog_ond3 %>%
   arrange(caseconceptname, eventtimetimestamp) %>%
   group_by(caseconceptname) %>%
-  summarise(trace = paste(eventconceptname, collapse = " -> ")) %>% 
+  summarise(trace = paste(eventconceptname, collapse = " -> "),
+            casepurchasedocument = casePurchasingDocument) %>% 
   ungroup()
 
 trace_summary <- traces %>%
-  group_by(trace) %>%
+  group_by(trace, casepurchasedocument) %>%
   summarise(absolute_frequency = n())
 
 infrequent_traces <- trace_summary %>%
   filter(absolute_frequency <= 3)
 
-summary(infrequent_traces)
-sum(infrequent_traces$absolute_frequency == 3)
-sum(infrequent_traces$absolute_frequency == 2)
-sum(infrequent_traces$absolute_frequency == 1)
+frequent_traces <- trace_summary %>%
+  filter(absolute_frequency > 3) %>%
+  pull(trace)
 
-max(trace_summary$absolute_frequency)
+unique_infrequent_traces <- unique(infrequent_traces$trace)
+
+activity_frequency <- eventlog_ond3 %>%
+  count(eventconceptname, name = "frequency") %>%
+  mutate(tf_idf = log(nrow(eventlog_ond3) / frequency))
+
+# Functie om de total tf-idf score te berekenen voor een trace
+trace_score <- function(trace, tf_idf_table) {
+  trace_activities <- unlist(strsplit(trace, " -> "))
+  sum(tf_idf_table$tf_idf[tf_idf_table$eventconceptname %in% trace_activities], na.rm = TRUE)
+}
+
+# Voeg een severity-score toe aan infrequent_traces
+infrequent_traces <- infrequent_traces %>%
+  rowwise() %>%
+  mutate(severity = trace_score(trace, activity_frequency))
+
+# Resultaten bekijken
+print(infrequent_traces)
+
+orders <- unique(infrequent_traces$casepurchasedocument)
 ```
 
+```{r}
+conformance <- bupaR::conformance_check(eventlog_ond3, frequentietraces)
+```
 
 ---
 ```{r}
@@ -716,27 +762,6 @@ ggplot(end_summary, aes(x = reorder(end_activity, count_end), y = count_end)) +
   coord_flip() +
   labs(title = "Frequentie van Eindactiviteiten", x = "Eindactiviteiten", y = "Frequentie") +
   theme_minimal()
-```
-
-```{r}
-# precedence matrix geplot en niet geplot
-
-activity_frequency(eventlog_cluster, level = "activity") %>%
-  rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
-  filter(Percentage > 0.007) %>%
-  ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + geom_col() +
-  geom_text(aes(label = round(Percentage, 4))) +
-  labs(x = "Percentage", y = "Activiteiten", title = "Activiteitsfrequentie")
-
-```
-
-```{r}
-# precedence matrix geplot en niet geplot
-
-processmapR::precedence_matrix(eventlog_exploratory)
-processmapR::precedence_matrix(eventlog_exploratory) %>% plot
-
-
 ```
 
 
