@@ -379,6 +379,7 @@ eventlog_cluster %>%
   geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
 
 ```
+
 ```{r}
 
 eventlog_cluster %>%
@@ -652,19 +653,42 @@ trace <- ond3 %>%
 
 print(trace)
 ```
-#kijken naar de throughput en dan zien waar die niet gelijk is aan 0 voor de moeilijke
+#kijken naar de throughput en dan kijken als de throughput gelijk is aan 0 dan zit je met gelijktijdige activiteiten die uitgevoerd worden.
 ```{r}
 ond3_2 <- ond3 %>%
   group_by(casePurchasingDocument) %>%
   arrange(eventtimetimestamp) %>%
-  mutate(ThroughputTime = as.numeric(difftime(lead(eventtimetimestamp), eventtimetimestamp, units = "hours")))
+  mutate(ThroughputTime = as.numeric(difftime(lead(eventtimetimestamp), eventtimetimestamp, units = "days")))
 
 ond3_3 <- ond3_2 %>%
-  filter(ThroughputTime != 0)
+  filter(ThroughputTime == 0)
 
 print(unique(ond3_3$casePurchasingDocument))
 ```
 
+```{r}
+eventlog_ond3_4 <- eventlog_ond3 %>%
+  group_by(casePurchasingDocument) %>%
+  select(casePurchasingDocument, eventCumulativenetworthEUR, eventtimetimestamp)
+
+eventlog_ond3_4 <- eventlog_ond3_4 %>%
+  mutate(casePurchasingDocument = as.character(casePurchasingDocument))
+
+eventlog_ond3_waarde <- eventlog_ond3_4 %>%
+  group_by(casePurchasingDocument) %>%
+  summarise(maxfactuurbedrag = max(eventCumulativenetworthEUR[casePurchasingDocument == casePurchasingDocument], na.rm = TRUE))
+
+summary(eventlog_ond3_waarde)
+
+minimumwaardes <- eventlog_ond3_waarde %>%
+  filter(maxfactuurbedrag == 0)
+
+print(minimumwaardes)
+
+maximumwaardes <- eventlog_ond3_waarde %>%
+  arrange(desc(maxfactuurbedrag))
+print(head(maximumwaardes, 40))
+```
 
 #Code waarvan nog uitgezocht moet worden waar deze hoort
 ```{r}
