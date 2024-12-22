@@ -678,9 +678,9 @@ eventlog_ond3_4 <- eventlog_ond3_4 %>%
 #Het totaal bedrag van de purchasing document krijgen per document
 eventlog_ond3_waarde <- eventlog_ond3_4 %>%
   group_by(casePurchasingDocument) %>%
-  summarise(maxfactuurbedrag = max(eventCumulativenetworthEUR[casePurchasingDocument == casePurchasingDocument], na.rm = TRUE))
+  summarise(maxfactuurbedrag = max(eventCumulativenetworthEUR[casePurchasingDocument == casePurchasingDocument]))
 
-#statistische waardes bekijken
+#statistische gegevens bekijken
 summary(eventlog_ond3_waarde)
 
 #de PO met geen waardes krijgen
@@ -688,17 +688,6 @@ minimumwaardes <- eventlog_ond3_waarde %>%
   filter(maxfactuurbedrag == 0)
 
 print(minimumwaardes)
-
-#De PO's met de hoogste waardes krijgen
-maximumwaardes <- eventlog_ond3_waarde %>%
-  arrange(desc(maxfactuurbedrag))
-print(head(maximumwaardes, 10))
-
-#De traces krijgen van degene met de hoogste bedragen om te analyseren
-max_traces <- trace %>%
-  filter(casePurchasingDocument %in% c(4507004994, 4507000684, 4507000430, 4507001973))
-
-print(max_traces)
 
 #De traces krijgen van degene die geen waardes hebben
 min_traces <- trace %>%
@@ -711,6 +700,32 @@ print(min_traces)
 min_traces_consignment <- minimumwaardes %>%
   filter(casePurchasingDocument %in% eventlog_cluster_consignment$casePurchasingDocument)
 
+#Kijken naar de minimum waardes zonder degene zonder waarde
+
+min_niet0_waardes <- eventlog_ond3_waarde %>%
+  filter(0 < maxfactuurbedrag) %>%
+  arrange(maxfactuurbedrag)
+
+min_niet0_waardes <- eventlog_ond3_waarde %>%
+  filter(1000>= maxfactuurbedrag) %>%
+  arrange(maxfactuurbedrag)
+
+#aantal PO per factuurbedrag minimum
+per_waarde <- min_niet0_waardes %>%
+  group_by(maxfactuurbedrag) %>%
+  summarise(Totaal_aantal_POs = n_distinct(casePurchasingDocument))
+print(head(per_waarde, 50))
+
+#De PO's met de hoogste waardes krijgen
+maximumwaardes <- eventlog_ond3_waarde %>%
+  arrange(desc(maxfactuurbedrag))
+print(head(maximumwaardes, 10))
+
+#De traces krijgen van degene met de hoogste bedragen om te analyseren
+max_traces <- trace %>%
+  filter(casePurchasingDocument %in% c(4507004994, 4507000684, 4507000430, 4507001973))
+
+print(max_traces)
 ```
 
 #Code waarvan nog uitgezocht moet worden waar deze hoort
