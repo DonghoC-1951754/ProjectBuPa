@@ -675,29 +675,42 @@ eventlog_ond3_4 <- eventlog_ond3 %>%
 eventlog_ond3_4 <- eventlog_ond3_4 %>%
   mutate(casePurchasingDocument = as.character(casePurchasingDocument))
 
+#Het totaal bedrag van de purchasing document krijgen per document
 eventlog_ond3_waarde <- eventlog_ond3_4 %>%
   group_by(casePurchasingDocument) %>%
   summarise(maxfactuurbedrag = max(eventCumulativenetworthEUR[casePurchasingDocument == casePurchasingDocument], na.rm = TRUE))
 
+#statistische waardes bekijken
 summary(eventlog_ond3_waarde)
 
+#de PO met geen waardes krijgen
 minimumwaardes <- eventlog_ond3_waarde %>%
   filter(maxfactuurbedrag == 0)
 
 print(minimumwaardes)
 
+#De PO's met de hoogste waardes krijgen
 maximumwaardes <- eventlog_ond3_waarde %>%
   arrange(desc(maxfactuurbedrag))
 print(head(maximumwaardes, 10))
 
+#De traces krijgen van degene met de hoogste bedragen om te analyseren
 max_traces <- trace %>%
   filter(casePurchasingDocument %in% c(4507004994, 4507000684, 4507000430, 4507001973))
 
 print(max_traces)
 
+#De traces krijgen van degene die geen waardes hebben
 min_traces <- trace %>%
   filter(casePurchasingDocument %in% minimumwaardes$casePurchasingDocument)
+
+print(unique(min_traces$Trace))
 print(min_traces)
+
+#Kijken hoeveel er geen waarde hebben en tot de klasse consignemnt horen want daarbij is het logisch.
+min_traces_consignment <- minimumwaardes %>%
+  filter(casePurchasingDocument %in% eventlog_cluster_consignment$casePurchasingDocument)
+
 ```
 
 #Code waarvan nog uitgezocht moet worden waar deze hoort
