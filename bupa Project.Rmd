@@ -653,20 +653,33 @@ trace <- ond3 %>%
 
 print(trace)
 ```
-#kijken naar de throughput en dan kijken als de throughput gelijk is aan 0 dan zit je met gelijktijdige activiteiten die uitgevoerd worden.
+#kijken naar hoeveel activiteiten er per trace voorkomen
 ```{r}
+#Het aantal activiteiten per order tellen
+trace_lengths <- ond3 %>%
+  group_by(casePurchasingDocument) %>%
+  summarise(ActivityCount = n())
 
-#dit duurt lang om te runnen en geeft niks nuttigs echt at the moment dus niet runnen
-#ond3_2 <- ond3 %>%
-#  group_by(casePurchasingDocument) %>%
-#  arrange(eventtimetimestamp) %>%
-#  mutate(ThroughputTime = as.numeric(difftime(lead(eventtimetimestamp), eventtimetimestamp, units = "days")))
+#Het maximum aantal activiteiten mooi op een rijtje krijgen
+outlier_traces_max <- trace_lengths %>%
+  arrange(desc(ActivityCount))
+print(outlier_traces_max)
 
-#ond3_3 <- ond3_2 %>%
-#  filter(ThroughputTime == 0)
+#Het minimum aantal activiteiten mooi op een rijtje krijgen
+outlier_traces_min <- trace_lengths %>%
+  arrange(ActivityCount)
+print(outlier_traces_min)
 
+#statistische gegevens bekijken
+summary(trace_lengths)
+
+#Krijgen hoeveel orders er een bepaald aantal activiteiten hebben.
+orders_per_aantal <- trace_lengths %>%
+  count(ActivityCount, name = "Aantal orders") %>%
+  arrange(ActivityCount)
+print(orders_per_aantal)
 ```
-
+#Analyseren van de waarde van de facturen en kijken of er afwijkingen inzitten
 ```{r}
 eventlog_ond3_4 <- eventlog_ond3 %>%
   group_by(casePurchasingDocument) %>%
@@ -727,6 +740,39 @@ max_traces <- trace %>%
 
 print(max_traces)
 ```
+#Volgorde van activiteiten in de traces bekijken
+```{r}
+activiteiten_paren <- ond3 %>%
+  group_by(casePurchasingDocument) %>%
+  arrange(eventtimetimestamp) %>%
+  mutate(volgende_activiteit = lead(eventconceptname)) %>%
+  ungroup()
+
+activiteiten_paren <- activiteiten_paren %>%
+  mutate(casePurchasingDocument = as.character(casePurchasingDocument))
+
+activiteiten_paren_met_cases <- activiteiten_paren %>%
+  filter(!is.na(volgende_activiteit)) %>%
+  group_by(eventconceptname, volgende_activiteit) %>%
+  summarise(
+    n = n(),
+    casePurchasingDocuments = paste(unique(casePurchasingDocument), collapse = ", ")
+  ) %>%
+  ungroup()
+
+#Welke komen er maar 1 keer voor
+activiteiten_paren_met_cases_1keer <- activiteiten_paren_met_cases %>%
+  filter(n == 1) %>%
+  arrange(n)
+print(activiteiten_paren_met_cases_1keer)
+
+orders_meerdereuniekevolgorde <- activiteiten_paren_met_cases_1keer %>%
+  count(casePurchasingDocuments) %>%
+  filter(n > 1)
+print(orders_meerdereuniekevolgorde)
+
+```
+
 
 #Code waarvan nog uitgezocht moet worden waar deze hoort
 ```{r}
