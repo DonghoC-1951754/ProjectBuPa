@@ -655,6 +655,8 @@ print(trace)
 ```
 #kijken naar de throughput en dan kijken als de throughput gelijk is aan 0 dan zit je met gelijktijdige activiteiten die uitgevoerd worden.
 ```{r}
+
+#dit duurt lang om te runnen en geeft niks nuttigs echt at the moment dus niet runnen
 ond3_2 <- ond3 %>%
   group_by(casePurchasingDocument) %>%
   arrange(eventtimetimestamp) %>%
@@ -663,7 +665,6 @@ ond3_2 <- ond3 %>%
 ond3_3 <- ond3_2 %>%
   filter(ThroughputTime == 0)
 
-print(unique(ond3_3$casePurchasingDocument))
 ```
 
 ```{r}
@@ -687,7 +688,16 @@ print(minimumwaardes)
 
 maximumwaardes <- eventlog_ond3_waarde %>%
   arrange(desc(maxfactuurbedrag))
-print(head(maximumwaardes, 40))
+print(head(maximumwaardes, 10))
+
+max_traces <- trace %>%
+  filter(casePurchasingDocument %in% c(4507004994, 4507000684, 4507000430, 4507001973))
+
+print(max_traces)
+
+min_traces <- trace %>%
+  filter(casePurchasingDocument %in% minimumwaardes$casePurchasingDocument)
+print(min_traces)
 ```
 
 #Code waarvan nog uitgezocht moet worden waar deze hoort
