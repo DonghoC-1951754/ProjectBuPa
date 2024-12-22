@@ -575,6 +575,54 @@ frequentietraces <- processmapR::trace_explorer(eventlog_cluster, n_traces = 10)
 
 # Onderzoeksvraag 2: doorlooptijd van het facturatieproces
 
+```{r}
+eventlog_exploratory %>% throughput_time("trace")
+```
+# Ruwe schets van de throughput times, gefilterd op het facturatieproces. We kunnen uit de tabellen van de trace vb. kijken welke het langste duurt enzo. De plot van 'case' geeft een staafdiagram (duurt lang om te laden), en de plot van 'log' geeft een boxplot weer
+```{r}
+facturatieproces <- eventlog_exploratory %>% filter(eventconceptname %in% c("Record Goods Receipt", "Record Invoice Receipt", "Clear Invoice"))
+
+facturatieproces %>% throughput_time("case", unit = "days")
+
+facturatieproces %>% throughput_time("log", unit = "days")
+
+options(scipen=999)
+facturatieproces %>% throughput_time("log", unit = "days") %>%
+  plot()+ 
+  labs(
+    y = "Doorlooptijd (in dagen)",
+  )+
+  geom_boxplot(outlier.color = "red",  outlier.size = 1, outlier.shape = 16) +
+  scale_y_continuous(breaks = seq(0, 500, 50))
+# options(scipen=0)
+
+facturatieproces_summary <- facturatieproces %>% throughput_time("log", unit = "days")
+Q1 <- facturatieproces_summary$q1
+Q3 <- facturatieproces_summary$q3
+IQR <- facturatieproces_summary$iqr
+
+# Upper bound
+Q3 + 1.5 * IQR
+
+# Amount of outliers
+total_cases_amount <- nrow(facturatieproces %>% throughput_time("case", unit = "days"))
+outlier_amount <- nrow(facturatieproces %>% throughput_time("case", unit = "days") %>% filter(throughput_time > 163.6697))
+(outlier_amount / total_cases_amount) * 100
+
+total_cases_amount
+n_cases(facturatieproces)
+
+facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 5))) %>%
+  arrange(desc(relative_frequency)) %>% head(10) # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
+```
+
+```{r}
+facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 2))) %>%
+  arrange(desc(total))
+```
+
 
 # Onderzoeksvraag 3: Afwijkingen
 ```{r}
@@ -594,54 +642,31 @@ eventlog_ond3 <- eventlog_ond3 %>%
   ))
 ```
 
-## Infrequente traces
 ```{r}
-traces <- eventlog_ond3 %>%
-  arrange(caseconceptname, eventtimetimestamp) %>%
-  group_by(caseconceptname) %>%
-  summarise(trace = paste(eventconceptname, collapse = " -> "),
-            casepurchasedocument = casePurchasingDocument) %>% 
-  ungroup()
+ond3 <- eventlog_ond3 %>%
+  arrange(casePurchasingDocument, eventtimetimestamp)
 
-trace_summary <- traces %>%
-  group_by(trace, casepurchasedocument) %>%
-  summarise(absolute_frequency = n())
+trace <- ond3 %>%
+  group_by(casePurchasingDocument) %>%
+  summarise(Trace = paste(eventconceptname, collapse = " -> "))
 
-infrequent_traces <- trace_summary %>%
-  filter(absolute_frequency <= 3)
+print(trace)
+```
+#kijken naar de throughput en dan zien waar die niet gelijk is aan 0 voor de moeilijke
+```{r}
+ond3_2 <- ond3 %>%
+  group_by(casePurchasingDocument) %>%
+  arrange(eventtimetimestamp) %>%
+  mutate(ThroughputTime = as.numeric(difftime(lead(eventtimetimestamp), eventtimetimestamp, units = "hours")))
 
-frequent_traces <- trace_summary %>%
-  filter(absolute_frequency > 3) %>%
-  pull(trace)
+ond3_3 <- ond3_2 %>%
+  filter(ThroughputTime != 0)
 
-unique_infrequent_traces <- unique(infrequent_traces$trace)
-
-activity_frequency <- eventlog_ond3 %>%
-  count(eventconceptname, name = "frequency") %>%
-  mutate(tf_idf = log(nrow(eventlog_ond3) / frequency))
-
-# Functie om de total tf-idf score te berekenen voor een trace
-trace_score <- function(trace, tf_idf_table) {
-  trace_activities <- unlist(strsplit(trace, " -> "))
-  sum(tf_idf_table$tf_idf[tf_idf_table$eventconceptname %in% trace_activities], na.rm = TRUE)
-}
-
-# Voeg een severity-score toe aan infrequent_traces
-infrequent_traces <- infrequent_traces %>%
-  rowwise() %>%
-  mutate(severity = trace_score(trace, activity_frequency))
-
-# Resultaten bekijken
-print(infrequent_traces)
-
-orders <- unique(infrequent_traces$casepurchasedocument)
+print(unique(ond3_3$casePurchasingDocument))
 ```
 
-```{r}
-conformance <- bupaR::conformance_check(eventlog_ond3, frequentietraces)
-```
 
----
+#Code waarvan nog uitgezocht moet worden waar deze hoort
 ```{r}
 
 # Activity frequency
@@ -706,31 +731,6 @@ eventlog_cluster %>%
 Op "trace"-niveau, de doorlooptijd van de verschillende procesvarianten of traces in het log worden berekend.
 
 
-
-```{r}
-# infrequente traces
-
-traces <- eventlog_cluster %>%
-  arrange(caseconceptname, eventtimetimestamp) %>%
-  group_by(caseconceptname) %>%
-  summarise(trace = paste(eventconceptname, collapse = " -> ")) %>% 
-  ungroup()
-
-trace_summary <- traces %>%
-  group_by(trace) %>%
-  summarise(absolute_frequency = n())
-
-infrequent_traces <- trace_summary %>%
-  filter(absolute_frequency <= 3)
-
-summary(infrequent_traces)
-sum(infrequent_traces$absolute_frequency == 3)
-sum(infrequent_traces$absolute_frequency == 2)
-sum(infrequent_traces$absolute_frequency == 1)
-
-max(trace_summary$absolute_frequency)
-```
-
 ```{r}
 # Kijken unieke start en eindactiviteiten 
 traces_with_start_end <- traces %>%
@@ -764,18 +764,6 @@ ggplot(end_summary, aes(x = reorder(end_activity, count_end), y = count_end)) +
   theme_minimal()
 ```
 
-
-
-```{r}
-# dotted chart
-
-eventlog_cluster %>% dotted_chart(x = "relative")
-```
-
-```{r}
-processmapR::resource_map(eventlog_cluster)
-```
-
 ```{r}
 # resource matrix
 
@@ -783,62 +771,6 @@ processmapR::resource_matrix(eventlog)
 processmapR::resource_matrix(eventlog_ellen) %>% plot
 
 processmapR::precedence_matrix(eventlog_cluster) %>% plot
-```
-
-```{r}
-eventlog_exploratory %>% throughput_time("trace")
-```
-# Ruwe schets van de throughput times, gefilterd op het facturatieproces. We kunnen uit de tabellen van de trace vb. kijken welke het langste duurt enzo. De plot van 'case' geeft een staafdiagram (duurt lang om te laden), en de plot van 'log' geeft een boxplot weer
-```{r}
-facturatieproces <- eventlog_exploratory %>% filter(eventconceptname %in% c("Record Goods Receipt", "Record Invoice Receipt", "Clear Invoice"))
-
-facturatieproces %>% throughput_time("case", unit = "days")
-
-facturatieproces %>% throughput_time("log", unit = "days")
-
-options(scipen=999)
-facturatieproces %>% throughput_time("log", unit = "days") %>%
-  plot()+ 
-  labs(
-    y = "Doorlooptijd (in dagen)",
-  )+
-  geom_boxplot(outlier.color = "red",  outlier.size = 1, outlier.shape = 16) +
-  scale_y_continuous(breaks = seq(0, 500, 50))
-# options(scipen=0)
-
-facturatieproces_summary <- facturatieproces %>% throughput_time("log", unit = "days")
-Q1 <- facturatieproces_summary$q1
-Q3 <- facturatieproces_summary$q3
-IQR <- facturatieproces_summary$iqr
-
-# Upper bound
-Q3 + 1.5 * IQR
-
-# Amount of outliers
-total_cases_amount <- nrow(facturatieproces %>% throughput_time("case", unit = "days"))
-outlier_amount <- nrow(facturatieproces %>% throughput_time("case", unit = "days") %>% filter(throughput_time > 163.6697))
-(outlier_amount / total_cases_amount) * 100
-
-total_cases_amount
-n_cases(facturatieproces)
-
-facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
-  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 5))) %>%
-  arrange(desc(relative_frequency)) %>% head(10) # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
-```
-
-
-
-```{r}
-facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
-  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 2))) %>%
-  arrange(desc(total))
-```
-
-
-
-```{r}
-
 ```
 
 ```{r}
