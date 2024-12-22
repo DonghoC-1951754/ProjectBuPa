@@ -657,13 +657,13 @@ print(trace)
 ```{r}
 
 #dit duurt lang om te runnen en geeft niks nuttigs echt at the moment dus niet runnen
-ond3_2 <- ond3 %>%
-  group_by(casePurchasingDocument) %>%
-  arrange(eventtimetimestamp) %>%
-  mutate(ThroughputTime = as.numeric(difftime(lead(eventtimetimestamp), eventtimetimestamp, units = "days")))
+#ond3_2 <- ond3 %>%
+#  group_by(casePurchasingDocument) %>%
+#  arrange(eventtimetimestamp) %>%
+#  mutate(ThroughputTime = as.numeric(difftime(lead(eventtimetimestamp), eventtimetimestamp, units = "days")))
 
-ond3_3 <- ond3_2 %>%
-  filter(ThroughputTime == 0)
+#ond3_3 <- ond3_2 %>%
+#  filter(ThroughputTime == 0)
 
 ```
 
