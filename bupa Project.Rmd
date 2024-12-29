@@ -369,14 +369,30 @@ eventlog_cluster %>% number_of_repetitions(level = "case")
 
 #figuur 13
 eventlog_cluster %>% 
+  number_of_repetitions(level = "resource")
+eventlog_cluster %>% 
   number_of_repetitions(level = "activity") %>% 
   rename(Aantal = absolute, Percentage = relative, Activiteiten = eventconceptname ) %>%
-  slice(1:10) %>%
+  slice(1:17) %>%
   ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + 
   geom_col() + 
   xlim(0, 0.15) +
   labs(x = "Percentage", y = "Activiteiten") +
   geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
+
+eventlog_cluster %>% 
+  number_of_repetitions(level = "resource")
+
+#figuur 14
+eventlog_cluster %>% 
+  number_of_repetitions(level = "resource") %>% 
+  rename(Aantal = absolute, Percentage = relative, Resource = first_resource ) %>%
+  slice(2:15) %>%
+  ggplot(aes(x = Aantal, y = fct_reorder(Resource, Aantal))) + 
+  geom_col() + 
+  xlim(0, 3000) +
+  labs(x = "Aantal", y = "Resource") +
+  geom_text(aes(label = Aantal, hjust = -0.2))
 
 ```
 
@@ -388,7 +404,6 @@ eventlog_cluster %>%
   size_of_repetitions(level = "case", type = "repeat") eventlog_cluster %>%
   size_of_repetitions(level = "activity", type = "repeat") 
 
-#figuur 14
 eventlog_cluster %>%
   size_of_repetitions(level = "resource", type = "repeat") %>% 
   arrange(desc(total)) %>% 
@@ -412,7 +427,7 @@ eventlog_cluster %>% number_of_selfloops(level = "activity", type = "repeat") %>
   slice(1:10) %>%
   ggplot(aes(x = Percentage, y = fct_reorder(Activiteiten, Percentage))) + 
   geom_col() + 
-  xlim(0, 0.15) +
+  xlim(0, 0.20) +
   labs(x = "Percentage", y = "Activiteiten") +
   geom_text(aes(label = round(Percentage, 4), hjust = -0.08))
 ```
