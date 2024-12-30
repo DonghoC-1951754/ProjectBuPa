@@ -628,9 +628,17 @@ outlier_amount <- nrow(facturatieproces %>% throughput_time("case", unit = "days
 total_cases_amount
 n_cases(facturatieproces)
 
+#doorlooptijd op trace level verschillende views
 facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
   mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 5))) %>%
   arrange(desc(relative_frequency)) %>% head(10) # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
+
+facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 5))) %>%
+  arrange(desc(mean)) %>% head(10)
+
+n_traces(facturatieproces)
+n_traces(eventlog_exploratory)
 ```
 
 ```{r}
@@ -639,6 +647,11 @@ facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
   arrange(desc(total))
 ```
 
+```{r}
+str(facturatieproces %>% throughput_time("trace", unit = "weeks"))
+
+glimpse(facturatieproces %>% throughput_time("trace", unit = "weeks"))
+```
 
 # Onderzoeksvraag 3: Afwijkingen
 ```{r}
@@ -893,7 +906,11 @@ ggplot(end_summary, aes(x = reorder(end_activity, count_end), y = count_end)) +
 processmapR::resource_matrix(eventlog)
 processmapR::resource_matrix(eventlog_ellen) %>% plot
 
-processmapR::precedence_matrix(eventlog_cluster) %>% plot
+pm <- processmapR::precedence_matrix(eventlog_cluster, type = "relative") %>% plot() + labs(x = "Volgende activiteit", y = "Voorgaande activiteit")
+
+pm$rel_n <- pm$rel_n * 100
+
+plot(pm)
 ```
 
 ```{r}
