@@ -629,6 +629,8 @@ total_cases_amount
 n_cases(facturatieproces)
 
 #doorlooptijd op trace level verschillende views
+facturatieproces %>% throughput_time("case", unit = "days") %>% filter(throughput_time <= 163.6697)
+
 facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
   mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 5))) %>%
   arrange(desc(relative_frequency)) %>% head(10) # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
