@@ -293,7 +293,7 @@ activity_frequency(eventlog_cluster, level = "activity") %>%
 # precedence matrix geplot en niet geplot
 
 processmapR::precedence_matrix(eventlog_exploratory)
-processmapR::precedence_matrix(eventlog_exploratory) %>% plot
+processmapR::precedence_matrix(eventlog_exploratory, "relative") %>% plot
 
 
 ```
@@ -638,11 +638,19 @@ facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
   arrange(desc(relative_frequency)) %>% head(10) # Je krijgt alle combinaties van traces en dan hoelang die duren enzo
 
 facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
-  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 5))) %>%
+  mutate(across(where(is.numeric), ~ round(.x, 10)), across(where(is.difftime), ~ round(as.numeric(.x), 10))) %>%
   arrange(desc(mean)) %>% head(10)
 
 n_traces(facturatieproces)
 n_traces(eventlog_exploratory)
+
+facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 5)), across(where(is.difftime), ~ round(as.numeric(.x), 5))) %>%
+  arrange(relative_frequency) %>% head(10)
+
+facturatieproces %>% throughput_time("trace", unit = "weeks") %>%
+  mutate(across(where(is.numeric), ~ round(.x, 10)), across(where(is.difftime), ~ round(as.numeric(.x), 10))) %>%
+  arrange(mean) %>% head(10)
 ```
 
 ```{r}
