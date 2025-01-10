@@ -768,6 +768,7 @@ max_traces <- trace %>%
 
 print(max_traces)
 ```
+
 #Volgorde van activiteiten in de traces bekijken
 ```{r}
 activiteiten_paren <- ond3 %>%
